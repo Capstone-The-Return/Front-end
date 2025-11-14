@@ -1,0 +1,47 @@
+.container {
+ align-items: flex-start; /* 1. Vertically center content */
+  display: flex;
+  justify-content: flex-start; /* 2. Horizontally center content */
+  height: 100vh;
+  width: 50vh;
+  background-color: rgb(147, 143, 143);
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 20px;
+  
+  
+}
+.mybutton {
+  /* Sizing and Shape */
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  margin: 10px;
+  /* Color and Font */
+  background-color: #434445; /* Primary blue */
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  
+  /* Feel and Interaction */
+  cursor: pointer;
+  transition: all 0.2s ease-in-out; /* Smooth transition for all properties */
+}
+
+/* Style for when the mouse is hovering over the button */
+.mybutton:hover {
+  background-color: #0056b3; /* Darker blue */
+  /* Add a subtle shadow on hover for a "lifted" effect */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Style for when the button is actively being clicked */
+.mybutton:active {
+  background-color: #004085; /* Even darker blue */
+  transform: scale(0.98); /* Makes it look "pressed" */
+  box-shadow: none; /* Remove shadow when pressed */
+}
+
+
+
+
