@@ -1,4 +1,4 @@
-import FormApp from "./FormApp"
+import FormApp from "../../components/FormApp/FormApp";
 import AppBar from "../../components/AppBar/AppBar";
 import FooterApp from "../../components/FooterApp/FooterApp";
 import AsideApp from "../../components/AsideApp/AsideApp";
