@@ -1,0 +1,16 @@
+.container {
+  color: rgb(0, 0, 0);
+  /* display: flex;
+  justify-content: space-between; */
+  text-align: left;
+  align-items: flex-start;
+  display: flex;
+  justify-content: center; /* 2. Horizontally center content */
+  height: 80vh;
+  width: 100vh;
+  background-color: rgb(255, 255, 255);
+  float: center;
+  flex-direction: column;
+  margin: 10px;
+
+}
