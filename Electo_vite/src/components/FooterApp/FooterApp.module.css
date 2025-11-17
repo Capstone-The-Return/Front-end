@@ -6,7 +6,7 @@
   align-items: center;
   display: flex;
   justify-content: center; /* 2. Horizontally center content */
-  height: 100px;
+  height: 20vh;
   width: 100%;
   
   background-color: rgb(0, 0, 0);
