@@ -1,0 +1,17 @@
+# katevase to node 24 apo to docker hub
+FROM node:24-alpine
+# ftiaxe ena working directory, me onoma /app mesa sto container(tha kanei kai cd mesa /app)
+WORKDIR /app
+# adegrapse to package.json kai to package-lock.json sto working directory
+COPY package.json package-lock.json* ./
+
+# i install the dependencies, c install dev dependencies too
+RUN npm ci
+
+# adegrapse to kwdika(ola ta arheia) mesa sto working directory
+COPY . .
+# kane to port 5173 na einai accessible apo tous allous containers(docker network, ikoniko diktio)
+EXPOSE 5173
+# Kane "npm run dev" (xekinato)
+# Vite's "--host 0.0.0.0" option ensures it accepts external traffic 
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
