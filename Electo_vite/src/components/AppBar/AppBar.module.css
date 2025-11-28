@@ -1,25 +1,53 @@
 .container {
-  color: rgb(247, 247, 247);
-  /* display: flex;
-  justify-content: space-between; */
-  text-align: center;
-  align-items: center;
   display: flex;
-  justify-content: center; /* 2. Horizontally center content */
-  height: 100px;
-  
+  justify-content: space-between; /* Logo αριστερά, τίτλος δεξιά */
+  align-items: center;
+  padding: 0 2rem;
+  height: 80px;
+  background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  color: #f7f7f7;
+  font-family: 'Poppins', sans-serif;
 }
 
-header {
-  align-items: center;
-  background-color: black;
+@keyframes pulseGlow {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0);
+  }
 }
 
 .icon {
-  width: 50px;
-  height: 50px;
-  margin-right: 15px; /* Space between icon and text */
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.icon:hover {
+  animation: pulseGlow 1.2s infinite;
+  /* Αν θέλεις σταθερό hover χωρίς animation, μπορείς να βάλεις: */
+  /* transform: scale(1.1); */
+  /* box-shadow: 0 0 15px rgba(0, 123, 255, 0.6); */
+}
+
+
+.headertext {
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  letter-spacing: 2px;
+  user-select: none; /* Αποφυγή επιλεκτικής επιλογής κειμένου */
+}
+
 
 
 
