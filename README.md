@@ -20,3 +20,5 @@ install: https://docs.docker.com/desktop/setup/install/windows-install/
 
 docker build -f Dockerfile.localdev -t frontend-dev . 
 docker run -p 5173:5173 frontend-dev
+
+test
