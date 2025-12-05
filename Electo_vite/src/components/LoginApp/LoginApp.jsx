@@ -23,13 +23,15 @@ export default function LoginApp() {
 
         <div className={style.inputGroup}>
           <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+              />
+
         </div>
 
         <div className={style.inputGroup}>
@@ -39,8 +41,10 @@ export default function LoginApp() {
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
             required
           />
+
         </div>
 
         <button type="submit" className={style.loginButton}>
