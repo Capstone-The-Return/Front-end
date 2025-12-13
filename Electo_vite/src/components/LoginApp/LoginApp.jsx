@@ -17,13 +17,14 @@ export default function LoginApp() {
   };
 
 
-  
+
 
   return (
     <div className={style.loginContainer}>
       <form onSubmit={handleSubmit} className={style.loginForm}>
         <h2>Login</h2>
 
+        
         <div className={style.inputGroup}>
           <label htmlFor="email">Email</label>
               <input
