@@ -1,24 +1,30 @@
 import { useState } from "react";
 import { Package, LogIn } from "lucide-react";
-import styles from "./LoginApp.module.css"; // Import the CSS Module
+import styles from "./LoginApp.module.css"; 
+import { handleLogin } from "./HandleLogin.js";
+import { useNavigate } from "react-router-dom";
 
-export default function LoginApp({ onLogin }) {
-  const [selectedRole, setSelectedRole] = useState("customer");
+export default function LoginApp() {
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [loginStatus, setLoginStatus] = useState(null); // null, 'success', 'failure'
+  const navigate = useNavigate();
   const handleSubmit = (e) => {
     e.preventDefault();
-    onLogin(selectedRole);
+    let loginSuccess = handleLogin({ email, password });
+    if (loginSuccess.authentication) {
+      
+      setLoginStatus("success");
+      navigate(`/${loginSuccess.role}Page`);
+      
+    } else {
+      
+      setLoginStatus("failure");
+    }
   };
 
-  // Helper function to determine the role button class
-  const getRoleButtonClass = (role) => {
-    return selectedRole === role
-      ? `${styles.roleButton} ${styles.roleButtonActive}`
-      : `${styles.roleButton} ${styles.roleButtonInactive}`;
-  };
-
+ 
   // Helper function for input focus/blur (retains logic from original component)
   const handleInputFocus = (e) => {
     e.currentTarget.style.borderBottomColor = "#2c5364";
@@ -55,40 +61,6 @@ export default function LoginApp({ onLogin }) {
               </p>
             </div>
 
-            <div className={styles.roleSelection}>
-              <label className={styles.roleLabel}>Login As</label>
-              <div className={styles.roleButtonGrid}>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole("customer")}
-                  className={getRoleButtonClass("customer")}
-                >
-                  Customer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole("employee")}
-                  className={getRoleButtonClass("employee")}
-                >
-                  Employee
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole("manager")}
-                  className={getRoleButtonClass("manager")}
-                >
-                  Manager
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole("technical")}
-                  className={getRoleButtonClass("technical")}
-                >
-                  Technical
-                </button>
-              </div>
-            </div>
-
             <div className={styles.inputGroup}>
               <label htmlFor="email" className={styles.inputLabel}>
                 Email Address
@@ -99,7 +71,7 @@ export default function LoginApp({ onLogin }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={styles.textInput}
-                placeholder="Enter your email"
+                placeholder="Enter your email (employee@example.com)"
                 required
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
@@ -122,7 +94,11 @@ export default function LoginApp({ onLogin }) {
                 onBlur={handleInputBlur}
               />
             </div>
-
+            <p>
+              {loginStatus === "failure"
+                ? "Login failed! Invalid credentials."
+                : ""}{" "}
+            </p>
             <button
               type="submit"
               className={styles.loginButton}
@@ -139,16 +115,13 @@ export default function LoginApp({ onLogin }) {
               <button
                 type="button"
                 onClick={() =>
-                  alert(
-                    "Password reset functionality - UC02\nAn email with password reset instructions would be sent to your email address."
-                  )
+                  navigate(`/resetPasswordPage`)
                 }
                 className={styles.forgotPasswordButton}
               >
                 Forgot Password?
               </button>
             </div>
-
           </form>
         </div>
       </div>
