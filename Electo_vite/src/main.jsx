@@ -6,6 +6,7 @@ import "./index.css";
 import LoginPage from "./pages/LoginPage/LoginPage";
 import MainPage from "./pages/MainPage/MainPage";
 import PasswordResetPage from "./pages/PasswordResetPage/PasswordResetPage";
+import RegisterPage from "./pages/RegisterPage/RegisterPage";
 
 const router = createBrowserRouter([
   {
@@ -20,7 +21,10 @@ const router = createBrowserRouter([
     path: "resetPasswordPage",
     element: <PasswordResetPage />,
   },
-  
+  {
+    path: "register",
+    element: <RegisterPage />,
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(

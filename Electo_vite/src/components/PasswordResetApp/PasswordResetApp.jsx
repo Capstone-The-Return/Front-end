@@ -13,10 +13,10 @@ export default function PasswordReset() {
     setMessage("");
     setIsSubmitting(true);
     setTimeout(() => {
-    passwordResetHandle({ email });
-    setMessage("If the email exists, a reset link has been sent.");
+      passwordResetHandle({ email });
+      setMessage("If the email exists, a reset link has been sent.");
 
-    setIsSubmitting(false);
+      setIsSubmitting(false);
     }, 1000); // Simulate network delay
   };
 
@@ -57,13 +57,7 @@ export default function PasswordReset() {
             </div>
 
             {/* Display status message */}
-            {message && (
-              <div
-                className={styles.successMessage}
-              >
-                {message}
-              </div>
-            )}
+            {message && <div className={styles.successMessage}>{message}</div>}
 
             <div className={styles.inputGroup}>
               <label htmlFor="email" className={styles.inputLabel}>

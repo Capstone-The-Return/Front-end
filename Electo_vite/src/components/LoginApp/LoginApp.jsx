@@ -95,9 +95,7 @@ export default function LoginApp() {
               />
             </div>
             <p>
-              {loginStatus === "failure"
-                ? "Login failed! Invalid credentials."
-                : ""}{" "}
+              {loginStatus === "failure" ? "Wrong email or password." : ""}{" "}
             </p>
             <button
               type="submit"
@@ -107,16 +105,26 @@ export default function LoginApp() {
             >
               <div className={styles.loginButtonContent}>
                 <LogIn className="w-5 h-5" />
-                Sign In
+                Login
+              </div>
+            </button>
+
+            <button
+              onClick={() => navigate(`/register`)}
+              className={styles.loginButton}
+              onMouseEnter={handleButtonHover}
+              onMouseLeave={handleButtonLeave}
+            >
+              <div className={styles.loginButtonContent}>
+                <LogIn className="w-5 h-5" />
+                Register
               </div>
             </button>
 
             <div className={styles.forgotPasswordWrapper}>
               <button
                 type="button"
-                onClick={() =>
-                  navigate(`/resetPasswordPage`)
-                }
+                onClick={() => navigate(`/resetPasswordPage`)}
                 className={styles.forgotPasswordButton}
               >
                 Forgot Password?
