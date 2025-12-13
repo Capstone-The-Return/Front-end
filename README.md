@@ -22,6 +22,8 @@ Run:
 git clone https://github.com/Capstone-The-Return/Front-end.git  
 cd Front-end/Electo_vite  
 npm install  
+npm install json-server --save-dev
+npx json-server --watch db/db.json --port 4000
 npm run dev  
 
 🎉 App runs at: http://localhost:5173
