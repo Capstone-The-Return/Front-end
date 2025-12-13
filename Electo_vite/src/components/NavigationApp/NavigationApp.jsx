@@ -26,7 +26,7 @@ export default function NavigationApp() {
         </li>
         <li className={style.menuItemLogout}>
           <FiFileText className={style.icon} />
-          {open && <span>Submit Request</span>}
+          {open && <span>Submit Requests</span>}
         </li>
         <li className={style.menuItemLogout}>
           <FiSearch  className={style.icon} />
