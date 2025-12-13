@@ -1,0 +1,148 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "role": "employee",
+      "name": "Employee Admin",
+      "email": "employee@test.com"
+    },
+    {
+      "id": "2",
+      "role": "technician",
+      "name": "Tech One"
+    },
+    {
+      "id": "3",
+      "role": "technician",
+      "name": "Tech Two",
+      "email": "maria@test.com"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "1",
+      "rma": "RMA-001",
+      "customer": {
+        "name": "Maria P."
+      },
+      "product": {
+        "name": "Laptop"
+      },
+      "status": "pending",
+      "warranty": true,
+      "issue": "Screen flickering",
+      "assigned_to": "Tech One",
+      "priority": "high",
+      "notes": "Customer reported issue started after recent update.",
+      "phone": "+30 2101234567",
+      "email": "akes@gmail.com",
+      "address": "123 Main St, Athens, Greece",
+      "serial_number": "SN123456789",
+      "purchase_date": "2023-11-15",
+      "photo_url": "https://example.com/photos/rma-001.jpg",
+      "owner": "Anasasia Kesisi",
+      "last_updated": "2024-06-10T15:30:00Z",
+      "created_at": "2024-06-01T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "rma": "RMA-002",
+      "customer": {
+        "name": "John D."
+      },
+      "product": {
+        "name": "TV"
+      },
+      "status": "approved",
+      "warranty": true,
+      "issue": "Screen flickering",
+      "assigned_to": null,
+      "priority": "high",
+      "notes": "Customer reported issue started after recent update.",
+      "phone": "+30 2101234567",
+      "email": "akes@gmail.com",
+      "address": "123 Main St, Athens, Greece",
+      "serial_number": "SN123456789",
+      "purchase_date": "2023-11-15",
+      "photo_url": "https://example.com/photos/rma-001.jpg",
+      "owner": "Anasasia Kesisi",
+      "last_updated": "2024-06-10T15:30:00Z",
+      "created_at": "2024-06-01T10:00:00Z"
+    },
+    {
+      "id": "3",
+      "rma": "RMA-003",
+      "customer": {
+        "name": "Anna K."
+      },
+      "product": {
+        "name": "Mouse"
+      },
+      "status": "in-repair",
+      "warranty": true,
+      "issue": "Screen flickering",
+      "assigned_to": "Tech Two",
+      "priority": "high",
+      "notes": "Customer reported issue started after recent update.",
+      "phone": "+30 2101234567",
+      "email": "akes@gmail.com",
+      "address": "123 Main St, Athens, Greece",
+      "serial_number": "SN123456789",
+      "purchase_date": "2023-11-15",
+      "photo_url": "https://example.com/photos/rma-001.jpg",
+      "owner": "Anasasia Kesisi",
+      "last_updated": "2024-06-10T15:30:00Z",
+      "created_at": "2024-06-01T10:00:00Z"
+    },
+    {
+      "id": "4",
+      "rma": "RMA-004",
+      "customer": {
+        "name": "Nick S."
+      },
+      "product": {
+        "name": "Keyboard"
+      },
+      "status": "completed",
+      "warranty": true,
+      "issue": "Screen flickering",
+      "assigned_to": "Tech Two",
+      "priority": "high",
+      "notes": "Customer reported issue started after recent update.",
+      "phone": "+30 2101234567",
+      "email": "akes@gmail.com",
+      "address": "123 Main St, Athens, Greece",
+      "serial_number": "SN123456789",
+      "purchase_date": "2023-11-15",
+      "photo_url": "https://example.com/photos/rma-001.jpg",
+      "owner": "Anasasia Kesisi",
+      "last_updated": "2024-06-10T15:30:00Z",
+      "created_at": "2024-06-01T10:00:00Z"
+    },
+    {
+      "id": "5",
+      "rma": "RMA-005",
+      "customer": {
+        "name": "Dimi S."
+      },
+      "product": {
+        "name": "Keyboard"
+      },
+      "status": "in-repair",
+      "warranty": true,
+      "issue": "Screen flickering",
+      "assigned_to": "Tech Two",
+      "priority": "high",
+      "notes": "Customer reported issue started after recent update.",
+      "phone": "+30 2101234567",
+      "email": "akes@gmail.com",
+      "address": "123 Main St, Athens, Greece",
+      "serial_number": "SN123456789",
+      "purchase_date": "2023-11-15",
+      "photo_url": "https://example.com/photos/rma-001.jpg",
+      "owner": "Anasasia Kesisi",
+      "last_updated": "2024-06-10T15:30:00Z",
+      "created_at": "2024-06-01T10:00:00Z"
+    }
+  ]
+}
