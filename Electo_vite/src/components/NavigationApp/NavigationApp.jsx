@@ -17,36 +17,36 @@ export default function NavigationApp() {
       <ul className={style.menuList}>
         <li className={style.menuItem}>
           <FiHome className={style.icon} />
-          {open && <span>Αρχική</span>}
+          {open && <span>Home Page</span>}
         </li>
 
         <li className={style.menuItem}>
           <FiUser className={style.icon} />
-          {open && <span>Προφίλ</span>}
+          {open && <span>Profile</span>}
         </li>
         <li className={style.menuItemLogout}>
           <FiFileText className={style.icon} />
-          {open && <span>Υποβολή Αιτήματος</span>}
+          {open && <span>Submit Requests</span>}
         </li>
         <li className={style.menuItemLogout}>
           <FiSearch  className={style.icon} />
-          {open && <span>Παρακολούθηση Αιτήματος</span>}
+          {open && <span>View Request</span>}
         </li>
         <li className={style.menuItemLogout}>
           <FiList  className={style.icon} />
-          {open && <span>Λίστα Αιτημάτων</span>}
+          {open && <span>Request List</span>}
         </li>
         <li className={style.menuItemLogout}>
           <FiTool className={style.icon} />
-          {open && <span>Τεχνικό Κέντρο</span>}
+          {open && <span>Tech Center</span>}
         </li>
         <li className={style.menuItem}>
           <FiSettings className={style.icon} />
-          {open && <span>Ρυθμίσεις</span>}
-        </li>
-        <li className={style.menuItemLogout}>
+          {open && <span>Setup</span>}
+        </li> 
+        <li className={style.menuItemLogout}onClick={() => (window.location.href = "/login")}>
           <FiLogOut className={style.icon} />
-          {open && <span>Αποσύνδεση</span>}
+          {open && <span>Logout</span>}
         </li>
       </ul>
     </nav>

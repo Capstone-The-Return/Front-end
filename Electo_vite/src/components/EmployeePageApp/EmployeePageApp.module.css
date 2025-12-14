@@ -1,0 +1,283 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ece9e6, #ffffff);
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.column {
+  background: #f4f5f7;
+  padding: 1rem;
+  border-radius: 14px;
+  min-height: 70vh;
+}
+
+.columnTitle {
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  cursor: grab;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.15);
+}
+
+.product {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.pending { border-left: 6px solid #f0ad4e; }
+.approved { border-left: 6px solid #0d6efd; }
+.in-repair { border-left: 6px solid #fd7e14; }
+.completed { border-left: 6px solid #198754; }
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 2rem;
+}
+
+.toolbar {
+  margin-bottom: 2rem;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.searchBox input {
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  flex: 1;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Κάρτες tickets */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  cursor: grab;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+.customer {
+  color: #666;
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pending { border-left: 6px solid #f0ad4e; color: #856404; }
+.approved { border-left: 6px solid #0d6efd; color: #004085; }
+.in-repair { border-left: 6px solid #fd7e14; color: #a85b00; }
+.completed { border-left: 6px solid #198754; color: #155724; }
+
+/* Κουμπί διαγραφής */
+.delete {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #dc3545;
+  font-size: 1.4rem;
+  transition: color 0.25s ease;
+}
+
+.delete:hover {
+  color: #a71d2a;
+}
+
+/* Kanban grid */
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+
+
+/* Product info */
+.product {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Search bar */
+.searchBar {
+  width: 100%;
+  max-width: 400px; /* όριο μεγέθους */
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  outline: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: border-color 0.2s ease;
+  margin: 0 auto 20px auto; /* κεντράρισμα + κάτω margin */
+  display: block;
+}
+
+.searchBar:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0,123,255,0.5);
+}
+
+/* Modal Overlay with blur */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+/* Modal content */
+.modalContent {
+  background: white;
+  padding: 2rem 2.5rem;
+  border-radius: 12px;
+  max-width: 480px;
+  width: 95%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.modalContent h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.modalContent label {
+  font-weight: 500;
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+  display: block;
+  color: #444;
+}
+
+.modalContent select {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 1rem;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: border-color 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20fill%3D'%23777'%20height%3D'24'%20viewBox%3D'0%200%2024%2024'%20width%3D'24'%20xmlns%3D'http%3A//www.w3.org/2000/svg'%3E%3Cpath%20d%3D'M7%2010l5%205%205-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+.modalContent select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Modal buttons */
+.modalContent button {
+  cursor: pointer;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+
+.modalContent .save {
+  
+  background: linear-gradient(90deg, #203a43, #2c5364, #0f2027);
+  box-shadow: 0 8px 25px rgba(44, 83, 100, 0.9), 0 0 15px rgba(32, 58, 67, 0.8);
+  color: white;
+}
+
+.modalContent .save:hover:not(:disabled) {
+  background: linear-gradient(90deg, #203a43, #2c5364, #0f2027);
+  box-shadow: 0 8px 25px rgba(44, 83, 100, 0.9), 0 0 15px rgba(32, 58, 67, 0.8);
+}
+
+.modalContent .cancel {
+  background: #f0f0f0;
+  color: #444;
+  margin-right: 1rem;
+}
+
+.modalContent .cancel:hover:not(:disabled) {
+  background: #d6d6d6;
+}

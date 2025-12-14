@@ -5,6 +5,7 @@ import "./index.css";
 
 import LoginPage from "./pages/LoginPage/LoginPage";
 import MainPage from "./pages/MainPage/MainPage";
+import EmployeePage from "./pages/EmployeePage/EmployeePage";
 import TechnicalPage from "./pages/TechnicalPage/TechnicalPage";
 
 const router = createBrowserRouter([
@@ -15,6 +16,10 @@ const router = createBrowserRouter([
   {
     path: "login",
     element: <LoginPage />,
+  },
+  {
+    path: "employeeDashboard",
+    element: <EmployeePage />,
   },
   {
     path: "technicalDashboard",
