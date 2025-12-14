@@ -5,7 +5,7 @@ import "./index.css";
 
 import LoginPage from "./pages/LoginPage/LoginPage";
 import MainPage from "./pages/MainPage/MainPage";
-
+import TechnicalPage from "./pages/TechnicalPage/TechnicalPage";
 
 const router = createBrowserRouter([
   {
@@ -16,7 +16,10 @@ const router = createBrowserRouter([
     path: "login",
     element: <LoginPage />,
   },
-  
+  {
+    path: "technicalDashboard",
+    element: <TechnicalPage />,
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(
