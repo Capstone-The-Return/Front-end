@@ -25,7 +25,7 @@ export default function EmployeePage() {
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
+  useEffect(() => {// Μπορείτε να προσθέσετε φίλτρα αν χρειάζεται
     getAllTickets().then(setTickets);
   }, []);
 
@@ -41,9 +41,9 @@ export default function EmployeePage() {
 
   // useMemo για filteredTickets (ανανεώνεται όταν αλλάζουν tickets ή searchQuery)
   const filteredTickets = useMemo(() => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery?.toLowerCase();
     return tickets.filter(ticket =>
-      ticket.rma.toLowerCase().includes(query) ||
+      ticket.rma?.toLowerCase().includes(query) ||
       ticket.customer?.name.toLowerCase().includes(query) ||
       ticket.product?.name.toLowerCase().includes(query)
     );
@@ -71,17 +71,21 @@ export default function EmployeePage() {
   const newStatus = destination.droppableId;
   const id = draggableId;
 
+  const currentTechnicalStatus = tickets.find(t => t.id === id)?.technical_status;
+
+  const newTechnicalStatus = newStatus === 'in-repair' ? 'Pending' : currentTechnicalStatus;
+
   // Optimistically update UI
   setTickets(prevTickets => {
     const updated = prevTickets.map(ticket =>
-     ticket.id === id ? { ...ticket, status: newStatus } : ticket
+     ticket.id === id ? { ...ticket, status: newStatus, technical_status: newTechnicalStatus } : ticket
     );
 
     return updated;
   });
 
   try {
-    await updateTicket(id, { status: newStatus });
+    await updateTicket(id, { status: newStatus, technical_status: newTechnicalStatus },'Employee');
     // No further update needed because UI updated optimistically
   } catch (error) {
     alert('Failed to update ticket status');
@@ -123,7 +127,7 @@ export default function EmployeePage() {
         warranty: editData.warranty,
       };
 
-      await updateTicket(selectedTicket.id, updatedFields);
+      await updateTicket(selectedTicket.id, updatedFields, "Employee");
 
       setTickets(prev =>
         prev.map(t =>
@@ -219,6 +223,7 @@ export default function EmployeePage() {
             <p><strong>Customer:</strong> {selectedTicket.customer?.name}</p>
             <p><strong>Product:</strong> {selectedTicket.product?.name}</p>
             <p><strong>Status:</strong> {STATUS_LABELS[selectedTicket.status]}</p>
+            <p><strong>Technical Status:</strong> {selectedTicket.technical_status}</p>
 
             <label>
               <strong>Assigned to:</strong>

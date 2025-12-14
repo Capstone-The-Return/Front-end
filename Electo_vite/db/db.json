@@ -42,7 +42,8 @@
       "photo_url": "https://example.com/photos/rma-001.jpg",
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
-      "created_at": "2024-06-01T10:00:00Z"
+      "created_at": "2024-06-01T10:00:00Z",
+      "technical_status": null
     },
     {
       "id": "2",
@@ -53,10 +54,10 @@
       "product": {
         "name": "TV"
       },
-      "status": "approved",
+      "status": "in-repair",
       "warranty": true,
       "issue": "Screen flickering",
-      "assigned_to": null,
+      "assigned_to": "Tech One",
       "priority": "high",
       "notes": "Customer reported issue started after recent update.",
       "phone": "+30 2101234567",
@@ -67,7 +68,8 @@
       "photo_url": "https://example.com/photos/rma-001.jpg",
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
-      "created_at": "2024-06-01T10:00:00Z"
+      "created_at": "2024-06-01T10:00:00Z",
+      "technical_status": "Rejected"
     },
     {
       "id": "3",
@@ -92,7 +94,8 @@
       "photo_url": "https://example.com/photos/rma-001.jpg",
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
-      "created_at": "2024-06-01T10:00:00Z"
+      "created_at": "2024-06-01T10:00:00Z",
+      "technical_status": "Approved"
     },
     {
       "id": "4",
@@ -117,7 +120,8 @@
       "photo_url": "https://example.com/photos/rma-001.jpg",
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
-      "created_at": "2024-06-01T10:00:00Z"
+      "created_at": "2024-06-01T10:00:00Z",
+      "technical_status": "completed"
     },
     {
       "id": "5",
@@ -142,7 +146,40 @@
       "photo_url": "https://example.com/photos/rma-001.jpg",
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
-      "created_at": "2024-06-01T10:00:00Z"
+      "created_at": "2024-06-01T10:00:00Z",
+      "technical_status": null
+    },
+    {
+      "id": "6",
+      "rma": "RMA-006",
+      "customer": {
+        "name": "Dimi S."
+      },
+      "product": {
+        "name": "Keyboard"
+      },
+      "date": "2024-12-03",
+      "issue": "Screen flickering intermittently, especially when displaying dark content",
+      "status": "in-repair",
+      "priority": "High",
+      "assignedTo": "Unassigned",
+      "technical_status": "Pending"
+    },
+    {
+      "id": "7",
+      "rma": "RMA-007",
+      "customer": {
+        "name": "Dimi S."
+      },
+      "product": {
+        "name": "Keyboard"
+      },
+      "date": "2024-12-02",
+      "issue": "Left speaker producing crackling sound at high volume",
+      "status": "in-repair",
+      "priority": "Medium",
+      "assignedTo": "Technician 001",
+      "technical_status": "In Repair"
     }
   ]
 }

@@ -1,4 +1,5 @@
 const BASE = 'http://localhost:4000/tickets';
+//const TechSupportBase = 'http://localhost:4000/TechnicalTickets';
 
 export const getAllTickets = async () => {
   const res = await fetch(BASE);

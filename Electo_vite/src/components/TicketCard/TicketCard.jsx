@@ -4,19 +4,19 @@ export default function TicketCard({ ticket, onStatusChange }) {
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <strong>{ticket.id}</strong>
+        <strong>{ticket.rma}</strong>
         <span className={`${styles.badge} ${styles[ticket.priority.toLowerCase()]}`}>
           {ticket.priority} PRIORITY
         </span>
       </div>
 
-      <p><strong>{ticket.customer}</strong></p>
-      <p>{ticket.product}</p>
+      <p><strong>{ticket.customer.name}</strong></p>
+      <p>{ticket.product.name}</p>
       <p className={styles.issue}>Issue: {ticket.issue}</p>
 
       <div className={styles.controls}>
         <select
-          value={ticket.status}
+          value={ticket.technical_status}
           onChange={(e) => onStatusChange(ticket.id, e.target.value)}
         >
           <option>Pending</option>

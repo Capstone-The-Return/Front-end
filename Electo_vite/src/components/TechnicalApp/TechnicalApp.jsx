@@ -1,21 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./TechnicalApp.module.css";
 import TicketCard from "../TicketCard/TicketCard";
-import initialTickets from "../../data/tickets.json";
+import { getAllTickets, updateTicket, deleteTicket } from '../../services/employeeTickets';
+
 
 export default function TechnicalApp() {
-  const [tickets, setTickets] = useState(initialTickets);
+  const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState("All");
+
+  useEffect(() => {
+    getAllTickets().then(data => {
+      setTickets(data.filter(t => t.technical_status !== null));
+    });
+  }, []);
 
   const filteredTickets =
     filter === "All"
       ? tickets
       : tickets.filter(t => t.status === filter);
 
-  const updateStatus = (id, status) => {
+  const updateStatus = async (id, status) => {
+
+    await updateTicket(id, {'technical_status': status});
+    
     setTickets(tickets.map(t =>
-      t.id === id ? { ...t, status } : t
+      t.id === id ? { ...t, technical_status: status } : t
     ));
+
   };
 
   return (
