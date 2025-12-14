@@ -1,7 +1,7 @@
-body {
+/* body {
     height: 100vh;
     margin: 0px;
-}
+} */
 .layout {
   display: flex;
   flex-direction: row;
