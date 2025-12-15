@@ -209,3 +209,19 @@
 .backToLoginLink:hover {
   color: #111827; /* hover:text-gray-900 */
 }
+
+
+
+.errorMessage {
+  color: #dc2626; /* Red color for error messages */
+  font-weight: 600;
+  margin-top: 1rem;
+  text-align: center;
+}
+.successMessage {
+  color: #3bdc26; /* Red color for error messages */
+  font-weight: 600;
+  margin-top: 1rem;
+  text-align: center;
+
+}

@@ -19,11 +19,14 @@ function isEmailRegistered(email) {
   return false;
 }
 
-export function handleRegister(name, email, password) {
+export function handleRegister(name, email, password, confirmPassword) {
+  if (password !== confirmPassword) {
+    return { isSuccess: false, message: "Passwords do not match." };
+  }
   if (isEmailRegistered(email)) {
-    return { success: false, message: "Email is already registered." };
+    return { isSuccess: false, message: "Email is already registered." };
   } else {
     addUser(name, email, password);
-    return { success: true, message: "Registration successful." };
+    return { isSuccess: true, message: "Registration successful." };
   }
 }

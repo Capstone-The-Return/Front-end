@@ -8,24 +8,21 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const [message, setMessage] = useState("");
+  const [isSuccess, setSuccess] = useState(false);
   // Set the default role permanently to 'customer'
   
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      alert("Error: Passwords do not match!");
-      return;
-    }
-
     
-
-    const result = handleRegister(name, email, password);
-    alert(result.message);
+    setMessage(""); // Clear previous error message
+    const result = handleRegister(name, email, password, confirmPassword);
+    setMessage(result.message);
+    setSuccess(result.isSuccess);
     // Clear form
-    if (result.success) {
+    if (result.isSuccess) {
     setName("");
     setEmail("");
     setPassword("");
@@ -156,7 +153,12 @@ export default function RegisterForm() {
                 Register as Customer
               </div>
             </button>
-
+            <div className={ 
+              message 
+      ? (isSuccess ? styles.successMessage : styles.errorMessage) 
+      : ''}>
+              {message}
+              </div>
             <div className={styles.backToLoginWrapper}>
               <a href="/login" className={styles.backToLoginLink}>
                 Already have an account? Sign In
