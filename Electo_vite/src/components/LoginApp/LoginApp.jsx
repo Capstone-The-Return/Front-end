@@ -16,7 +16,7 @@ export default function LoginApp() {
     if (loginSuccess.authentication) {
       
       setLoginStatus("success");
-      navigate(`/${loginSuccess.role}Page`);
+      navigate(`/${loginSuccess.role}Dashboard`);
       
     } else {
       
