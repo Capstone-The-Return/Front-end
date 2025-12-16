@@ -6,7 +6,6 @@ export function passwordResetHandle({ email }) {
     if (user.email === email) {
       // In a real application, here you would trigger the password reset email
       resetPasswordEmail({ email }, "Password Reset Request", "testlink12345 ");
-
       return;
     }
 
