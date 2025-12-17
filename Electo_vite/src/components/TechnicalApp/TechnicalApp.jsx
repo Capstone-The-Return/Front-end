@@ -10,7 +10,7 @@ export default function TechnicalApp() {
 
   useEffect(() => {
     getAllTickets().then(data => {
-      setTickets(data.filter(t => t.technical_status !== null));
+      setTickets(data.filter(t => t.technical_status !== null)); // krata ta tickets me technical staus
     });
   }, []);
 
@@ -19,12 +19,12 @@ export default function TechnicalApp() {
       ? tickets
       : tickets.filter(t => t.status === filter);
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (id, status) => { //otan o texnikosallazei status kaleitai h synarthsh
 
-    await updateTicket(id, {'technical_status': status});
+    await updateTicket(id, {'technical_status': status}); //enhmervsei ta json
     
     setTickets(tickets.map(t =>
-      t.id === id ? { ...t, technical_status: status } : t
+      t.id === id ? { ...t, technical_status: status } : t  //antikatthhsta to ticket poy allaje
     ));
 
   };

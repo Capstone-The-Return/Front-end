@@ -7,6 +7,8 @@ import LoginPage from "./pages/LoginPage/LoginPage";
 import MainPage from "./pages/MainPage/MainPage";
 import EmployeePage from "./pages/EmployeePage/EmployeePage";
 import TechnicalPage from "./pages/TechnicalPage/TechnicalPage";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const router = createBrowserRouter([
   {
