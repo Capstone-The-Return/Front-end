@@ -1,0 +1,427 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: #0f172a;
+}
+
+.portalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.portalTitle {
+  margin: 0;
+  font-size: clamp(24px, 2.3vw, 34px);
+  letter-spacing: -0.02em;
+}
+
+.portalSubtitle {
+  margin: 6px 0 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+.portalActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tabBtn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.tabBtnActive {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+.sectionTitle {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.searchCard {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 260px;
+  flex: 1;
+}
+
+.input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.primaryBtn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #0f172a;
+  background: #0f172a;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.secondaryBtn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.alertError {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
+.alertOk {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #14532d;
+  font-weight: 700;
+}
+
+.resultCard {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.resultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.resultTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.resultSub {
+  margin: 6px 0 0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.timeline {
+  margin: 14px 0 18px;
+}
+
+.timelineTop {
+  display: flex;
+  align-items: center;
+}
+
+.topItem {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 2px solid #cbd5e1;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: transparent;
+  background: #fff;
+  flex: 0 0 auto;
+}
+
+.circleActive {
+  border-color: #0f172a;
+  background: #0f172a;
+  color: #fff;
+}
+
+.connector {
+  flex: 1;
+  height: 3px;
+  background: #cbd5e1;
+  margin: 0 10px;
+  border-radius: 999px;
+}
+
+.connectorActive {
+  background: #0f172a;
+}
+
+.timelineLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  gap: 10px;
+}
+
+.stepLabel {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 800;
+}
+
+.stepLabelActive {
+  color: #0f172a;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.field {
+  border: 1px solid #f1f5f9;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.fieldValue {
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.block {
+  margin-top: 14px;
+}
+
+.blockLabel {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.blockValue {
+  padding: 12px;
+  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.blockValueMuted {
+  padding: 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 800;
+}
+
+.updatesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.updateItem {
+  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+}
+
+.updateTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.updateStatus {
+  font-weight: 900;
+}
+
+.updateDate {
+  color: #64748b;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.updateMsg {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.listWrap {
+  margin-top: 6px;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.requestCard {
+  text-align: left;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  cursor: pointer;
+}
+
+.requestCard:hover {
+  border-color: #94a3b8;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cardTitle {
+  font-weight: 950;
+  font-size: 15px;
+}
+
+.badgeSmall {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  font-weight: 900;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.cardMeta {
+  display: grid;
+  gap: 4px;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.metaLabel {
+  color: #64748b;
+  font-weight: 900;
+}
+
+.cardIssue {
+  margin-top: 10px;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.newWrap {
+  margin-top: 6px;
+}
+
+.newForm {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.newGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
+  .cardsGrid {
+    grid-template-columns: 1fr;
+  }
+  .newGrid {
+    grid-template-columns: 1fr;
+  }
+  .label {
+    min-width: 220px;
+  }
+}

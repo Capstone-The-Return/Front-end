@@ -5,6 +5,9 @@ import "./index.css";
 
 import LoginPage from "./pages/LoginPage/LoginPage";
 import MainPage from "./pages/MainPage/MainPage";
+import CustomerViewRequest from "./pages/CustomerViewRequest/CustomerViewRequest";
+
+
 import PasswordResetPage from "./pages/PasswordResetPage/PasswordResetPage";
 import RegisterPage from "./pages/RegisterPage/RegisterPage";
 import EmployeePage from "./pages/EmployeePage/EmployeePage";
@@ -22,6 +25,10 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "customer-view-request",
+    element: <CustomerViewRequest /> 
+  }
+  
     path: "resetPasswordPage",
     element: <PasswordResetPage />,
   },

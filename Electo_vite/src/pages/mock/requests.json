@@ -1,0 +1,80 @@
+[
+  {
+    "rma": "RMA-10001",
+    "type": "Repair",
+    "status": "In Progress",
+    "createdAt": "2025-12-10T09:15:00Z",
+    "customer": {
+      "fullName": "Maria Papadopoulou",
+      "email": "maria.papadopoulou@example.com"
+    },
+    "product": {
+      "category": "Laptop",
+      "brand": "Dell",
+      "model": "Inspiron 15",
+      "serialNumber": "DL-INS-15-9XK21"
+    },
+    "issueDescription": "Laptop does not power on. No LED indicators.",
+    "serviceCenter": {
+      "name": "Athens Service Center",
+      "city": "Athens"
+    },
+    "updates": [
+      { "date": "2025-12-10T09:15:00Z", "status": "Submitted", "message": "Request submitted successfully." },
+      { "date": "2025-12-11T10:20:00Z", "status": "Assigned to Service Center", "message": "Your request was assigned to a service center." },
+      { "date": "2025-12-12T14:05:00Z", "status": "In Progress", "message": "Repair is in progress." }
+    ]
+  },
+  {
+    "rma": "RMA-10002",
+    "type": "Return",
+    "status": "Pending Customer Documents",
+    "createdAt": "2025-12-08T12:00:00Z",
+    "customer": {
+      "fullName": "Giorgos Nikolaou",
+      "email": "g.nikolaou@example.com"
+    },
+    "product": {
+      "category": "Smartphone",
+      "brand": "Samsung",
+      "model": "Galaxy S22",
+      "serialNumber": "SM-S22-77AA12"
+    },
+    "issueDescription": "Screen flickers randomly.",
+    "serviceCenter": {
+      "name": "Thessaloniki Service Center",
+      "city": "Thessaloniki"
+    },
+    "updates": [
+      { "date": "2025-12-08T12:00:00Z", "status": "Submitted", "message": "Request submitted successfully." },
+      { "date": "2025-12-09T09:30:00Z", "status": "Pending Customer Documents", "message": "Please upload proof of purchase to continue." }
+    ]
+  },
+  {
+    "rma": "RMA-10003",
+    "type": "Repair",
+    "status": "Closed",
+    "createdAt": "2025-11-25T08:40:00Z",
+    "customer": {
+      "fullName": "Eleni Georgiou",
+      "email": "eleni.g@example.com"
+    },
+    "product": {
+      "category": "Tablet",
+      "brand": "Apple",
+      "model": "iPad Air",
+      "serialNumber": "APL-IPADAIR-55Z1"
+    },
+    "issueDescription": "Battery drains quickly.",
+    "serviceCenter": {
+      "name": "Patras Service Center",
+      "city": "Patras"
+    },
+    "updates": [
+      { "date": "2025-11-25T08:40:00Z", "status": "Submitted", "message": "Request submitted successfully." },
+      { "date": "2025-11-26T11:10:00Z", "status": "Covered (Warranty Valid)", "message": "Warranty verified." },
+      { "date": "2025-11-28T16:00:00Z", "status": "Fixed", "message": "Device repaired successfully." },
+      { "date": "2025-11-30T10:00:00Z", "status": "Closed", "message": "Request closed." }
+    ]
+  }
+]
