@@ -46,6 +46,9 @@ export default function LoginApp() {
     e.currentTarget.style.boxShadow = "0 4px 15px rgba(44, 83, 100, 0.6)";
   };
 
+
+
+
   return (
     <div className={styles.mainContainer}>
       <div className={styles.contentWrapper}>
@@ -61,10 +64,9 @@ export default function LoginApp() {
               </p>
             </div>
 
-            <div className={styles.inputGroup}>
-              <label htmlFor="email" className={styles.inputLabel}>
-                Email Address
-              </label>
+        
+        <div className={style.inputGroup}>
+          <label htmlFor="email">Email</label>
               <input
                 type="email"
                 id="email"

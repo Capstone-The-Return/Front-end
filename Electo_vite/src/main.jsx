@@ -7,6 +7,10 @@ import LoginPage from "./pages/LoginPage/LoginPage";
 import MainPage from "./pages/MainPage/MainPage";
 import PasswordResetPage from "./pages/PasswordResetPage/PasswordResetPage";
 import RegisterPage from "./pages/RegisterPage/RegisterPage";
+import EmployeePage from "./pages/EmployeePage/EmployeePage";
+import TechnicalPage from "./pages/TechnicalPage/TechnicalPage";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const router = createBrowserRouter([
   {
@@ -24,6 +28,12 @@ const router = createBrowserRouter([
   {
     path: "register",
     element: <RegisterPage />,
+    path: "employeeDashboard",
+    element: <EmployeePage />,
+  },
+  {
+    path: "technicalDashboard",
+    element: <TechnicalPage />,
   },
 ]);
 
