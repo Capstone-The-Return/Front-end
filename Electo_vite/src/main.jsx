@@ -8,6 +8,12 @@ import MainPage from "./pages/MainPage/MainPage";
 import CustomerViewRequest from "./pages/CustomerViewRequest/CustomerViewRequest";
 
 
+import PasswordResetPage from "./pages/PasswordResetPage/PasswordResetPage";
+import RegisterPage from "./pages/RegisterPage/RegisterPage";
+import EmployeePage from "./pages/EmployeePage/EmployeePage";
+import TechnicalPage from "./pages/TechnicalPage/TechnicalPage";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const router = createBrowserRouter([
   {
@@ -23,6 +29,19 @@ const router = createBrowserRouter([
     element: <CustomerViewRequest /> 
   }
   
+    path: "resetPasswordPage",
+    element: <PasswordResetPage />,
+  },
+  {
+    path: "register",
+    element: <RegisterPage />,
+    path: "employeeDashboard",
+    element: <EmployeePage />,
+  },
+  {
+    path: "technicalDashboard",
+    element: <TechnicalPage />,
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(
