@@ -1,15 +1,15 @@
-import AppBar from '../../components/AppBar/AppBar.jsx';
-import LoginApp from '../../components/LoginApp/LoginApp.jsx';
-import FooterApp from '../../components/FooterApp/FooterApp.jsx';
 
-export default function LoginPage() {
-  
-  
+import AppBar from '../../components/AppBar/AppBar.jsx';
+
+import FooterApp from '../../components/FooterApp/FooterApp.jsx';
+import PasswordResetApp from '../../components/PasswordResetApp/PasswordResetApp.jsx';
+
+export default function PasswordResetPage() {
 
   return (
     <>
       <AppBar />
-      <LoginApp />
+      <PasswordResetApp />
       <FooterApp />
     </>
   )

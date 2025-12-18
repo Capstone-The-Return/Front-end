@@ -5,6 +5,8 @@ import "./index.css";
 
 import LoginPage from "./pages/LoginPage/LoginPage";
 import MainPage from "./pages/MainPage/MainPage";
+import PasswordResetPage from "./pages/PasswordResetPage/PasswordResetPage";
+import RegisterPage from "./pages/RegisterPage/RegisterPage";
 import EmployeePage from "./pages/EmployeePage/EmployeePage";
 import TechnicalPage from "./pages/TechnicalPage/TechnicalPage";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -20,6 +22,12 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "resetPasswordPage",
+    element: <PasswordResetPage />,
+  },
+  {
+    path: "register",
+    element: <RegisterPage />,
     path: "employeeDashboard",
     element: <EmployeePage />,
   },
