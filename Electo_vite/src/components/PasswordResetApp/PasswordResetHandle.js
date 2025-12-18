@@ -1,14 +1,14 @@
-import users from "../../../db/users.json";
-import { resetPasswordEmail } from "../../utilities/emailService";
-
-export function passwordResetHandle({ email }) {
-  for (const user of users.users) {
-    if (user.email === email) {
-      // In a real application, here you would trigger the password reset email
-      resetPasswordEmail({ email }, "Password Reset Request", "testlink12345 ");
-      return;
-    }
-
+import { resetPasswordEmail } from "../../services/emailService";
+import { getAllUsers } from "../../services/getUsers";
+export async function passwordResetHandle({ email }) {
+  const allUsers = await getAllUsers();
+  const foundUser = allUsers.find((user) => user.email === email);
+  if (typeof foundUser === "undefined") {
+    console.log("Email not found:", email);
+    return;
+  } else if (foundUser.email === email) {
+    console.log("Email found, Password reset email sent to:", email);
+    resetPasswordEmail({ email }, "Password Reset Request", "testlink12345 ");
     return;
   }
 }

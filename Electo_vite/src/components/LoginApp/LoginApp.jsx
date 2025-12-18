@@ -10,10 +10,13 @@ export default function LoginApp() {
   const [password, setPassword] = useState("");
   const [loginStatus, setLoginStatus] = useState(null); // null, 'success', 'failure'
   const navigate = useNavigate();
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    let loginSuccess = handleLogin({ email, password });
+    const loginSuccess = await handleLogin({ email, password });
+
+
     if (loginSuccess.authentication) {
+    
       
       setLoginStatus("success");
       navigate(`/${loginSuccess.role}Dashboard`);
@@ -65,7 +68,7 @@ export default function LoginApp() {
             </div>
 
         
-        <div className={style.inputGroup}>
+        <div className={styles.inputGroup}>
           <label htmlFor="email">Email</label>
               <input
                 type="email"

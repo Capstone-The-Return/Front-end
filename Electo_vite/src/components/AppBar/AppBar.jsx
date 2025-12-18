@@ -2,6 +2,8 @@ import styles from "./AppBar.module.css";
 import electronicsIcon from "../../assets/electronics_icon.png";
 import { FiLogOut } from "react-icons/fi";
 import { useState } from "react";
+// import { Link } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function AppBar() {
   const [open, setOpen] = useState(false);
@@ -13,7 +15,9 @@ export default function AppBar() {
   return (
     <header className={styles.container}>
       <div className={styles["logo-wrapper"]}>
+        <Link to="/">
         <img src={electronicsIcon} className={styles.icon} alt="Electronics Icon" />
+        </Link>
         <h1 className={styles.headertext}>Electronics Company</h1>
       </div>
 
@@ -24,7 +28,7 @@ export default function AppBar() {
         onMouseLeave={() => setOpen(false)}
       >
         <FiLogOut size={28} />
-        {open && <span>Logout</span>}
+        {open && <span>Login/Logout</span>}
       </div>
     </header>
   );

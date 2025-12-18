@@ -4,18 +4,27 @@
       "id": "1",
       "role": "employee",
       "name": "Employee Admin",
-      "email": "employee@test.com"
+      "email": "employee@test.com",
+      "password": "employee123"
     },
     {
       "id": "2",
       "role": "technician",
-      "name": "Tech One"
+      "name": "Tech One",
+      "password": "technical123"
     },
     {
       "id": "3",
       "role": "technician",
       "name": "Tech Two",
-      "email": "maria@test.com"
+      "email": "technician@test.com",
+      "password": "technical321"
+    },
+    {
+      "id": "4",
+      "role": "customer",
+      "email": "customer@test.com",
+      "password": "customer123"
     }
   ],
   "tickets": [

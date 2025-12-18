@@ -1,21 +1,14 @@
-import { useNavigate } from "react-router-dom";
 import style from "./MainPageApp.module.css";
 
 export default function MainPageApp() {
-  const navigate = useNavigate();
 
-  const handleLoginClick = () => {
-    navigate("/login");
-  };
 
   return (
     <div className={style.container}>
       {/* Header Row: Τίτλος και Login Button */}
       <div className={style.headerRow}>
         <h2 className={style.title}>Welcome to Electronics Service & Returns Portal</h2>
-        <button className={style.mainLoginBtn} onClick={handleLoginClick}>
-          Login
-        </button>
+        
       </div>
       
       <p className={style.description}>

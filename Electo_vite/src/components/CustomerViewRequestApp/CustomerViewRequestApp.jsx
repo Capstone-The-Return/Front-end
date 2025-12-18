@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import style from "./CustomerViewRequestApp.module.css";
 import requestsData from "../../pages/mock/requests.json";
-
+// must connect to our database
 const STORAGE_KEY = "electo_requests_v1";
 
 const normalizeRma = (v) => (v || "").trim().toUpperCase();

@@ -27,19 +27,22 @@ const router = createBrowserRouter([
   {
     path: "customer-view-request",
     element: <CustomerViewRequest /> 
-  }
-  
+  },
+
+  {
     path: "resetPasswordPage",
     element: <PasswordResetPage />,
   },
   {
     path: "register",
     element: <RegisterPage />,
+  },
+  {
     path: "employeeDashboard",
     element: <EmployeePage />,
   },
   {
-    path: "technicalDashboard",
+    path: "technicianDashboard",
     element: <TechnicalPage />,
   },
 ]);

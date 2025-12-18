@@ -13,12 +13,12 @@ export default function RegisterForm() {
   // Set the default role permanently to 'customer'
   
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     
     setMessage(""); // Clear previous error message
-    const result = handleRegister(name, email, password, confirmPassword);
+    const result = await handleRegister(name, email, password, confirmPassword);
     setMessage(result.message);
     setSuccess(result.isSuccess);
     // Clear form
