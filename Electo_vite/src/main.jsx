@@ -5,6 +5,7 @@ import "./index.css";
 
 import LoginPage from "./pages/LoginPage/LoginPage";
 import MainPage from "./pages/MainPage/MainPage";
+import CustomerPage from "./pages/CustomerPage/CustomerPage"
 import CustomerViewRequest from "./pages/CustomerViewRequest/CustomerViewRequest";
 
 
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "customerDashboard",
+    element: <CustomerPage />,
+  },
+  
     path: "customer-view-request",
     element: <CustomerViewRequest /> 
   },
