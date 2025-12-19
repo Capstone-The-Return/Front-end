@@ -1,6 +1,17 @@
 import { useState } from "react";
-import { FiHome, FiUser, FiSettings, FiLogOut,FiFileText,FiSearch,FiList,FiTool, FiMenu } from "react-icons/fi";
-  
+import {
+  FiHome,
+  FiUser,
+  FiSettings,
+  FiLogOut,
+  FiFileText,
+  FiSearch,
+  FiList,
+  FiTool,
+  FiMenu,
+} from "react-icons/fi";
+import { Link } from "react-router-dom";
+
 import style from "./NavigationApp.module.css";
 
 export default function NavigationApp() {
@@ -8,7 +19,6 @@ export default function NavigationApp() {
 
   return (
     <nav className={`${style.container} ${open ? style.open : style.closed}`}>
-      
       {/* Toggle Button */}
       <button className={style.toggleBtn} onClick={() => setOpen(!open)}>
         <FiMenu size={22} />
@@ -26,14 +36,19 @@ export default function NavigationApp() {
         </li>
         <li className={style.menuItemLogout}>
           <FiFileText className={style.icon} />
-          {open && <span>Submit Requests</span>}
+          <Link
+            to="/customer-view-request"
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            {open && <span>Submit Requests</span>}
+          </Link>
         </li>
         <li className={style.menuItemLogout}>
-          <FiSearch  className={style.icon} />
+          <FiSearch className={style.icon} />
           {open && <span>View Request</span>}
         </li>
         <li className={style.menuItemLogout}>
-          <FiList  className={style.icon} />
+          <FiList className={style.icon} />
           {open && <span>Request List</span>}
         </li>
         <li className={style.menuItemLogout}>
@@ -43,14 +58,15 @@ export default function NavigationApp() {
         <li className={style.menuItem}>
           <FiSettings className={style.icon} />
           {open && <span>Setup</span>}
-        </li> 
-        <li className={style.menuItemLogout}onClick={() => (window.location.href = "/login")}>
+        </li>
+        <li
+          className={style.menuItemLogout}
+          onClick={() => (window.location.href = "/login")}
+        >
           <FiLogOut className={style.icon} />
-          {open && <span>Logout</span>}
+          {open && <span>Login/Logout</span>}
         </li>
       </ul>
     </nav>
   );
 }
-
-
