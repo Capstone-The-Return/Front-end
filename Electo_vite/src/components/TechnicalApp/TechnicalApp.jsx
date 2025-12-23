@@ -1,32 +1,42 @@
 import { useState, useEffect } from "react";
 import styles from "./TechnicalApp.module.css";
 import TicketCard from "../TicketCard/TicketCard";
-import { getAllTickets, updateTicket, deleteTicket } from '../../services/employeeTickets';
-
+import { getAllTickets, updateTicket } from '../../services/employeeTickets';
 
 export default function TechnicalApp() {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState("All");
+  const [searchTerm, setSearchTerm] = useState(""); // 1. Νέο state για την αναζήτηση
 
   useEffect(() => {
     getAllTickets().then(data => {
-      setTickets(data.filter(t => t.technical_status !== null)); // krata ta tickets me technical staus
+      // Κρατάμε τα tickets που έχουν technical_status (όχι null)
+      setTickets(data.filter(t => t.technical_status !== null)); 
     });
   }, []);
 
-  const filteredTickets =
-    filter === "All"
-      ? tickets
-      : tickets.filter(t => t.status === filter);
+  // 2. Συνδυασμένη λογική για Search ΚΑΙ Filter
+  const filteredTickets = tickets.filter(t => {
+    // Έλεγχος Status 
+    const matchesStatus = filter === "All" || t.technical_status === filter;
 
-  const updateStatus = async (id, status) => { //otan o texnikosallazei status kaleitai h synarthsh
+    // Έλεγχος Search (RMA, Customer Name, Product Name)
+    // Χρησιμοποιούμε toLowerCase() για να μην παίζει ρόλο αν είναι κεφαλαία ή μικρά
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = 
+      t.rma?.toLowerCase().includes(searchLower) ||
+      t.customer?.name?.toLowerCase().includes(searchLower) ||
+      t.product?.name?.toLowerCase().includes(searchLower);
 
-    await updateTicket(id, {'technical_status': status}); //enhmervsei ta json
+    return matchesStatus && matchesSearch;
+  });
+
+  const updateStatus = async (id, status) => {
+    await updateTicket(id, {'technical_status': status});
     
     setTickets(tickets.map(t =>
-      t.id === id ? { ...t, technical_status: status } : t  //antikatthhsta to ticket poy allaje
+      t.id === id ? { ...t, technical_status: status } : t
     ));
-
   };
 
   return (
@@ -40,7 +50,13 @@ export default function TechnicalApp() {
       </div>
 
       <div className={styles.filters}>
-        <input placeholder="Search by RMA ID, customer, or product..." />
+        {/* 3. Σύνδεση του input με το state */}
+        <input 
+          placeholder="Search by RMA ID, customer, or product..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        
         <select onChange={(e) => setFilter(e.target.value)}>
           <option value="All">All Statuses</option>
           <option>Pending</option>
