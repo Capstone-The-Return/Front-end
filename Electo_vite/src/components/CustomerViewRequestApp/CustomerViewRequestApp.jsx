@@ -1,12 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import style from "./CustomerViewRequestApp.module.css";
-import requestsData from "../../pages/mock/requests.json";
-// must connect to our database
-const STORAGE_KEY = "electo_requests_v1";
 
-const normalizeRma = (v) => (v || "").trim().toUpperCase();
+const API_BASE = "http://localhost:4000";
+
+const normalize = (v) => (v || "").trim().toUpperCase();
+
+const prettyStatus = (raw) => {
+  const s = (raw || "").trim();
+  if (!s) return "-";
+
+  const key = normalize(s);
+
+  const map = {
+    PENDING: "Pending",
+    "IN-REPAIR": "In Repair",
+    "IN REPAIR": "In Repair",
+    COMPLETED: "Completed",
+    CLOSED: "Closed",
+
+    APPROVED: "Approved",
+    REJECTED: "Rejected",
+    REJECT: "Rejected",
+    "IN REPAIR": "In Repair",
+  };
+
+  return map[key] || s;
+};
 
 const formatDate = (iso) => {
+  if (!iso) return "-";
   try {
     return new Date(iso).toLocaleString();
   } catch {
@@ -16,37 +38,78 @@ const formatDate = (iso) => {
 
 const STEPS = ["Submitted", "Approved", "In Repair", "Completed"];
 
-function getStepIndex(req) {
-  if (!req) return 0;
+function getTicketUpdatedAtMs(t) {
+  const raw = t?.last_updated || t?.created_at || t?.createdAt || t?.date;
+  if (!raw) return 0;
+  const ms = new Date(raw).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
 
-  const status = normalizeRma(req.status);
+function getStepIndexFromTicket(t) {
+  if (!t) return 0;
 
-  // closed/completed
-  if (status.includes("CLOSED") || status.includes("COMPLETED")) return 3;
+  const status = normalize(t.status); // pending | in-repair | completed
+  const tech = normalize(t.technical_status); // Approved | Rejected | Pending | etc.
 
-  // in repair / in progress
-  if (
-    status.includes("IN PROGRESS") ||
-    status.includes("IN REPAIR") ||
-    status.includes("REPAIR")
-  )
-    return 2;
+  if (status.includes("COMPLETED") || tech.includes("COMPLETED") || tech.includes("CLOSED")) return 3;
+  if (status.includes("IN-REPAIR") || status.includes("IN REPAIR") || tech.includes("IN REPAIR")) return 2;
+  if (tech.includes("APPROVED")) return 1;
 
-  // approved-ish
-  if (
-    status.includes("APPROVED") ||
-    status.includes("COVERED") ||
-    status.includes("ASSIGNED")
-  )
-    return 1;
+  // rejected: το δείχνουμε στο 2ο βήμα (με κόκκινο theme)
+  if (tech.includes("REJECT")) return 1;
 
-  // default submitted
   return 0;
 }
 
-function ProgressBar({ currentIndex = 0 }) {
+function getThemeFromTicket(t) {
+  if (!t) return "neutral";
+
+  const status = normalize(t.status);
+  const tech = normalize(t.technical_status);
+
+  if (tech.includes("REJECT")) return "danger";
+  if (status.includes("COMPLETED") || tech.includes("COMPLETED") || tech.includes("CLOSED")) return "success";
+  if (status.includes("IN-REPAIR") || status.includes("IN REPAIR") || tech.includes("IN REPAIR")) return "info";
+  if (status.includes("PENDING") || tech.includes("PENDING")) return "warning";
+
+  return "neutral";
+}
+
+// ✅ fix: αν status === technical_status -> δείξε μόνο ένα (πχ "Completed")
+function buildBadgeText(statusRaw, techRaw) {
+  const statusN = normalize(statusRaw);
+  const techN = normalize(techRaw);
+
+  const statusPretty = prettyStatus(statusRaw);
+  const techPretty = prettyStatus(techRaw);
+
+  if (!techRaw) return statusPretty;
+  if (techN && statusN === techN) return statusPretty;
+
+  return `${statusPretty} • ${techPretty}`;
+}
+
+function StatusBadge({ ticket }) {
+  const theme = getThemeFromTicket(ticket);
+  const text = buildBadgeText(ticket?.status, ticket?.technical_status);
+
+  const cls =
+    theme === "success"
+      ? style.badgeSuccess
+      : theme === "danger"
+      ? style.badgeDanger
+      : theme === "info"
+      ? style.badgeInfo
+      : theme === "warning"
+      ? style.badgeWarning
+      : style.badgeNeutral;
+
+  return <span className={`${style.badge} ${cls}`}>{text}</span>;
+}
+
+function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
   return (
-    <div className={style.timeline}>
+    <div className={style.timeline} data-theme={theme}>
       <div className={style.timelineTop}>
         {STEPS.map((s, i) => (
           <div key={s} className={style.topItem}>
@@ -59,11 +122,7 @@ function ProgressBar({ currentIndex = 0 }) {
             </div>
 
             {i < STEPS.length - 1 && (
-              <div
-                className={`${style.connector} ${
-                  i < currentIndex ? style.connectorActive : ""
-                }`}
-              />
+              <div className={`${style.connector} ${i < currentIndex ? style.connectorActive : ""}`} />
             )}
           </div>
         ))}
@@ -71,10 +130,7 @@ function ProgressBar({ currentIndex = 0 }) {
 
       <div className={style.timelineLabels}>
         {STEPS.map((s, i) => (
-          <div
-            key={s}
-            className={`${style.stepLabel} ${i <= currentIndex ? style.stepLabelActive : ""}`}
-          >
+          <div key={s} className={`${style.stepLabel} ${i <= currentIndex ? style.stepLabelActive : ""}`}>
             {s}
           </div>
         ))}
@@ -83,315 +139,214 @@ function ProgressBar({ currentIndex = 0 }) {
   );
 }
 
-function RequestDetails({ request }) {
-  if (!request) return null;
+function TicketDetails({ ticket }) {
+  if (!ticket) return null;
 
-  const updates = request?.updates?.length ? request.updates : [];
+  const theme = getThemeFromTicket(ticket);
+  const stepIndex = getStepIndexFromTicket(ticket);
+
+  const customerName = ticket.customer?.name || "-";
+  const productName = ticket.product?.name || "-";
 
   return (
-    <div className={style.resultCard}>
+    <div className={style.resultCard} data-theme={theme}>
       <div className={style.resultHeader}>
         <div>
           <h2 className={style.resultTitle}>RMA Status</h2>
           <p className={style.resultSub}>
-            RMA: <b>{request.rma}</b>
+            RMA: <b>{ticket.rma}</b>
           </p>
         </div>
 
-        <span className={style.badge}>{request.status}</span>
+        <StatusBadge ticket={ticket} />
       </div>
 
-      <ProgressBar currentIndex={getStepIndex(request)} />
+      <ProgressBar currentIndex={stepIndex} theme={theme} />
 
       <div className={style.detailsGrid}>
         <div className={style.field}>
-          <div className={style.fieldLabel}>Type</div>
-          <div className={style.fieldValue}>{request.type ?? "N/A"}</div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Created At</div>
-          <div className={style.fieldValue}>{formatDate(request.createdAt)}</div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Product</div>
-          <div className={style.fieldValue}>
-            {(request.product?.brand ?? "N/A") + " " + (request.product?.model ?? "")}
-          </div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Serial Number</div>
-          <div className={style.fieldValue}>{request.product?.serialNumber ?? "N/A"}</div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Purchase Date</div>
-          <div className={style.fieldValue}>
-            {request.purchaseDate ? formatDate(request.purchaseDate) : "N/A"}
-          </div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Reason for Return</div>
-          <div className={style.fieldValue}>{request.reasonForReturn ?? "N/A"}</div>
-        </div>
-
-        <div className={style.field}>
           <div className={style.fieldLabel}>Customer</div>
-          <div className={style.fieldValue}>{request.customer?.fullName ?? "N/A"}</div>
+          <div className={style.fieldValue}>{customerName}</div>
         </div>
 
         <div className={style.field}>
           <div className={style.fieldLabel}>Email</div>
-          <div className={style.fieldValue}>{request.customer?.email ?? "N/A"}</div>
+          <div className={style.fieldValue}>{ticket.email || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Phone</div>
+          <div className={style.fieldValue}>{ticket.phone || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Purchase Date</div>
+          <div className={style.fieldValue}>{ticket.purchase_date || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Product</div>
+          <div className={style.fieldValue}>{productName}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Serial Number</div>
+          <div className={style.fieldValue}>{ticket.serial_number || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Assigned To</div>
+          <div className={style.fieldValue}>{ticket.assigned_to || ticket.assignedTo || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Created At</div>
+          <div className={style.fieldValue}>
+            {formatDate(ticket.created_at || ticket.createdAt || ticket.date)}
+          </div>
         </div>
       </div>
 
       <div className={style.block}>
-        <div className={style.blockLabel}>Issue Description</div>
-        <div className={style.blockValue}>{request.issueDescription ?? "N/A"}</div>
+        <div className={style.blockLabel}>Issue</div>
+        <div className={style.blockValue}>{ticket.issue || "-"}</div>
       </div>
 
       <div className={style.block}>
-        <div className={style.blockLabel}>Updates</div>
-
-        {updates.length === 0 ? (
-          <div className={style.blockValueMuted}>No updates available.</div>
-        ) : (
-          <ul className={style.updatesList}>
-            {updates.map((u, idx) => (
-              <li key={`${u.date}-${idx}`} className={style.updateItem}>
-                <div className={style.updateTop}>
-                  <span className={style.updateStatus}>{u.status}</span>
-                  <span className={style.updateDate}>{formatDate(u.date)}</span>
-                </div>
-                <div className={style.updateMsg}>{u.message}</div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className={style.blockLabel}>Notes</div>
+        <div className={style.blockValue}>{ticket.notes || "-"}</div>
       </div>
     </div>
   );
 }
 
-function parseRmaNumber(rma) {
-  const m = String(rma || "").match(/(\d+)/);
-  return m ? Number(m[1]) : 0;
-}
-
-function createNextRma(existingRequests) {
-  const maxNum = (existingRequests || []).reduce((max, r) => {
-    const n = parseRmaNumber(r?.rma);
-    return n > max ? n : max;
-  }, 0);
-
-  const next = maxNum + 1;
-  return `RMA-${String(next).padStart(5, "0")}`;
-}
-
-function loadInitialRequests() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch {
-    // ignore
-  }
-  return Array.isArray(requestsData) ? requestsData : [];
-}
-
 export default function CustomerViewRequestApp() {
-  const [requests, setRequests] = useState(() => loadInitialRequests());
+  const [tab, setTab] = useState("track"); // "new" | "track" | "list" | "notifications"
 
-  // persist in localStorage (mock "database")
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-    } catch {
-      // ignore
-    }
-  }, [requests]);
-
-  const [tab, setTab] = useState("track"); // "list" | "new" | "track"
+  const [tickets, setTickets] = useState([]);
+  const ticketsMemo = useMemo(() => tickets || [], [tickets]);
 
   // Track RMA
   const [rma, setRma] = useState("");
   const [loading, setLoading] = useState(false);
-  const [trackErrorMsg, setTrackErrorMsg] = useState("");
-  const [trackInfoMsg, setTrackInfoMsg] = useState("");
-  const [request, setRequest] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [infoMsg, setInfoMsg] = useState("");
+  const [ticket, setTicket] = useState(null);
 
-  // New Return Request (mock)
-  const [newErrorMsg, setNewErrorMsg] = useState("");
-  const [newInfoMsg, setNewInfoMsg] = useState("");
-  const [newForm, setNewForm] = useState({
-    productName: "",
-    productModel: "",
-    serialNumber: "",
-    purchaseDate: "",
-    reasonForReturn: "",
-    issueDescription: "",
-  });
+  // Notifications dropdown (όπως “παλιά” — μόνο dropdown)
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifWrapRef = useRef(null);
 
-  const clearTrackMessages = () => {
-    setTrackErrorMsg("");
-    setTrackInfoMsg("");
+  const clearMessages = () => {
+    setErrorMsg("");
+    setInfoMsg("");
   };
 
-  const clearNewMessages = () => {
-    setNewErrorMsg("");
-    setNewInfoMsg("");
-  };
+  async function loadTickets() {
+    const res = await fetch(`${API_BASE}/tickets`);
+    if (!res.ok) throw new Error("Failed to load tickets");
+    const data = await res.json();
+    const arr = Array.isArray(data) ? data : [];
+    setTickets(arr);
+    return arr;
+  }
 
-  const handleSearch = (e) => {
+  useEffect(() => {
+    (async () => {
+      try {
+        await loadTickets();
+      } catch {
+        // no spam on mount
+      }
+    })();
+  }, []);
+
+  // close dropdown when clicking outside
+  useEffect(() => {
+    function onDocDown(e) {
+      if (!notifWrapRef.current) return;
+      if (!notifWrapRef.current.contains(e.target)) setNotifOpen(false);
+    }
+    document.addEventListener("mousedown", onDocDown);
+    return () => document.removeEventListener("mousedown", onDocDown);
+  }, []);
+
+  const notifications = useMemo(() => {
+    const sorted = [...ticketsMemo].sort((a, b) => getTicketUpdatedAtMs(b) - getTicketUpdatedAtMs(a));
+    return sorted.map((t) => ({
+      id: t.id,
+      rma: t.rma,
+      when: formatDate(t.last_updated || t.created_at || t.date),
+      label: buildBadgeText(t.status, t.technical_status),
+      ticket: t,
+      theme: getThemeFromTicket(t),
+    }));
+  }, [ticketsMemo]);
+
+  const handleSearch = async (e) => {
     e.preventDefault();
 
-    const query = normalizeRma(rma);
-    clearTrackMessages();
-    setRequest(null);
+    const query = normalize(rma);
+    clearMessages();
+    setTicket(null);
 
     if (!query) {
-      setTrackErrorMsg("Please enter an RMA number.");
+      setErrorMsg("Please enter an RMA number.");
       return;
     }
 
     setLoading(true);
 
-    setTimeout(() => {
-      const found = requests.find((x) => normalizeRma(x.rma) === query);
-
-      if (!found) {
-        setTrackErrorMsg("No request found for this RMA number.");
-      } else {
-        setRequest(found);
-        setTrackInfoMsg("Request loaded successfully.");
+    try {
+      const res = await fetch(`${API_BASE}/tickets?rma=${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const arr = await res.json();
+        const found = Array.isArray(arr) && arr.length ? arr[0] : null;
+        if (found) {
+          setTicket(found);
+          setInfoMsg("Ticket loaded successfully.");
+          setLoading(false);
+          return;
+        }
       }
 
+      const foundLocal = ticketsMemo.find((x) => normalize(x.rma) === query);
+      if (!foundLocal) {
+        setErrorMsg("No ticket found for this RMA number.");
+      } else {
+        setTicket(foundLocal);
+        setInfoMsg("Ticket loaded successfully.");
+      }
+    } catch {
+      setErrorMsg("Could not connect to server. Is json-server running on :4000?");
+    } finally {
       setLoading(false);
-    }, 200);
+    }
   };
 
   const handleClear = () => {
     setRma("");
     setLoading(false);
-    clearTrackMessages();
-    setRequest(null);
+    clearMessages();
+    setTicket(null);
   };
 
-  const openTrack = () => {
-    setTab("track");
-    clearNewMessages();
-  };
+  const openNew = () => setTab("new");
+  const openTrack = () => setTab("track");
+  const openList = () => setTab("list");
 
-  const openList = () => {
-    setTab("list");
-    clearTrackMessages();
-    clearNewMessages();
-  };
-
-  const openNew = () => {
-    setTab("new");
-    clearTrackMessages();
-    clearNewMessages();
-  };
-
-  const handlePickFromList = (req) => {
-    setRequest(req);
-    setRma(req.rma);
-    clearTrackMessages();
-    setTrackInfoMsg("Request loaded successfully.");
+  const handlePickTicket = (t) => {
+    setNotifOpen(false);
+    setTicket(t);
+    setRma(t.rma);
+    clearMessages();
+    setInfoMsg("Ticket loaded successfully.");
     setTab("track");
   };
 
-  const isNewFormValid = useMemo(() => {
-    return (
-      newForm.productName.trim() &&
-      newForm.productModel.trim() &&
-      newForm.serialNumber.trim() &&
-      newForm.purchaseDate.trim() &&
-      newForm.reasonForReturn.trim() &&
-      newForm.issueDescription.trim()
-    );
-  }, [newForm]);
-
-  const resetNewForm = () => {
-    setNewForm({
-      productName: "",
-      productModel: "",
-      serialNumber: "",
-      purchaseDate: "",
-      reasonForReturn: "",
-      issueDescription: "",
-    });
-  };
-
-  const handleNewSubmit = (e) => {
-    e.preventDefault();
-    clearNewMessages();
-
-    if (!isNewFormValid) {
-      setNewErrorMsg("Please fill in all required fields.");
-      return;
-    }
-
-    const newRma = createNextRma(requests);
-    const nowIso = new Date().toISOString();
-
-    const newReq = {
-      rma: newRma,
-      type: "Return",
-      status: "Submitted",
-      createdAt: nowIso,
-
-      // optional (we don't require login)
-      customer: {
-        fullName: "Guest",
-        email: "",
-      },
-
-      // mapping to existing schema (brand+model used in cards)
-      product: {
-        category: "Product",
-        brand: newForm.productName.trim(),
-        model: newForm.productModel.trim(),
-        serialNumber: newForm.serialNumber.trim(),
-      },
-
-      purchaseDate: newForm.purchaseDate, // ISO (from input type="date")
-      reasonForReturn: newForm.reasonForReturn,
-      issueDescription: newForm.issueDescription.trim(),
-
-      updates: [
-        {
-          date: nowIso,
-          status: "Submitted",
-          message: "Request submitted successfully.",
-        },
-      ],
-    };
-
-    setRequests((prev) => [newReq, ...prev]);
-
-    // UX: jump to Track and show status immediately
-    setRequest(newReq);
-    setRma(newReq.rma);
-    setTab("track");
-
-    clearTrackMessages();
-    setTrackInfoMsg(`Request submitted successfully. Your RMA is ${newReq.rma}.`);
-
-    resetNewForm();
-  };
-
-  const handleCancelNew = () => {
-    resetNewForm();
-    clearNewMessages();
-    setNewInfoMsg("Form cleared.");
+  const openNotificationsPage = () => {
+    setNotifOpen(false);
+    setTab("notifications");
   };
 
   return (
@@ -399,24 +354,16 @@ export default function CustomerViewRequestApp() {
       <header className={style.portalHeader}>
         <div>
           <h1 className={style.portalTitle}>Customer Portal</h1>
-          <p className={style.portalSubtitle}>Track the progress of your return requests</p>
+          <p className={style.portalSubtitle}>Track the progress of your requests</p>
         </div>
 
         <div className={style.portalActions}>
-          <button
-            className={`${style.tabBtn} ${tab === "list" ? style.tabBtnActive : ""}`}
-            onClick={openList}
-            type="button"
-          >
-            View My Returns
-          </button>
-
           <button
             className={`${style.tabBtn} ${tab === "new" ? style.tabBtnActive : ""}`}
             onClick={openNew}
             type="button"
           >
-            New Return Request
+            New Request
           </button>
 
           <button
@@ -426,13 +373,91 @@ export default function CustomerViewRequestApp() {
           >
             Track RMA
           </button>
+
+          <button
+            className={`${style.tabBtn} ${tab === "list" ? style.tabBtnActive : ""}`}
+            onClick={openList}
+            type="button"
+          >
+            View My Requests
+          </button>
+
+          {/* ✅ Dropdown box όπως πριν: ανοίγει/κλείνει και δείχνει λίστα + View all */}
+          <div className={style.notifWrap} ref={notifWrapRef}>
+            <button
+              className={`${style.tabBtn} ${notifOpen || tab === "notifications" ? style.tabBtnActive : ""}`}
+              onClick={() => setNotifOpen((p) => !p)}
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={notifOpen ? "true" : "false"}
+              title="Notifications"
+            >
+              <span className={style.bell} aria-hidden="true">🔔</span> Notifications
+            </button>
+
+            {notifOpen && (
+              <div className={style.dropdown} role="menu">
+                {notifications.length === 0 ? (
+                  <div className={style.dropdownEmpty}>No notifications yet.</div>
+                ) : (
+                  <>
+                    {notifications.slice(0, 4).map((n) => {
+                      const dotCls =
+                        n.theme === "success"
+                          ? style.dropdownDotSuccess
+                          : n.theme === "danger"
+                          ? style.dropdownDotDanger
+                          : n.theme === "info"
+                          ? style.dropdownDotInfo
+                          : n.theme === "warning"
+                          ? style.dropdownDotWarning
+                          : style.dropdownDotNeutral;
+
+                      return (
+                        <button
+                          key={n.id ?? n.rma}
+                          className={style.dropdownItem}
+                          type="button"
+                          onClick={() => handlePickTicket(n.ticket)}
+                          role="menuitem"
+                        >
+                          <span className={`${style.dropdownDot} ${dotCls}`} aria-hidden="true" />
+                          <span className={style.dropdownMain}>
+                            <span className={style.dropdownTitle}>{n.rma}</span>
+                            <span className={style.dropdownSub}>{n.label}</span>
+                          </span>
+                          <span className={style.dropdownWhen}>{n.when}</span>
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      className={style.dropdownViewAll}
+                      type="button"
+                      onClick={openNotificationsPage}
+                      role="menuitem"
+                    >
+                      View all →
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </header>
+
+      {tab === "new" && (
+        <div className={style.newWrap}>
+          <h2 className={style.sectionTitle}>New Request</h2>
+          {/* εδώ θα κουμπώσει η φόρμα του συναδέλφου */}
+        </div>
+      )}
 
       {tab === "track" && (
         <>
           <div className={style.searchCard}>
-            <h2 className={style.sectionTitle}>View Request</h2>
+            <h2 className={style.sectionTitle}>Track your RMA</h2>
 
             <form className={style.form} onSubmit={handleSearch}>
               <label className={style.label}>
@@ -440,7 +465,7 @@ export default function CustomerViewRequestApp() {
                 <input
                   className={style.input}
                   type="text"
-                  placeholder="e.g. RMA-10001"
+                  placeholder="e.g. RMA-002"
                   value={rma}
                   onChange={(e) => setRma(e.target.value)}
                   disabled={loading}
@@ -458,142 +483,110 @@ export default function CustomerViewRequestApp() {
               </div>
             </form>
 
-            {trackErrorMsg && <div className={style.alertError}>{trackErrorMsg}</div>}
-            {trackInfoMsg && <div className={style.alertOk}>{trackInfoMsg}</div>}
+            {errorMsg && <div className={style.alertError}>{errorMsg}</div>}
+            {infoMsg && <div className={style.alertOk}>{infoMsg}</div>}
           </div>
 
-          <RequestDetails request={request} />
+          <TicketDetails ticket={ticket} />
         </>
       )}
 
       {tab === "list" && (
         <div className={style.listWrap}>
-          <h2 className={style.sectionTitle}>My RMA Requests</h2>
+          <div className={style.listHeaderRow}>
+            <h2 className={style.sectionTitle}>My Requests</h2>
+            <button
+              type="button"
+              className={style.secondaryBtn}
+              onClick={async () => {
+                clearMessages();
+                try {
+                  setLoading(true);
+                  await loadTickets();
+                  setInfoMsg("Tickets refreshed.");
+                } catch {
+                  setErrorMsg("Could not refresh tickets.");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              Refresh
+            </button>
+          </div>
+
+          {errorMsg && <div className={style.alertError}>{errorMsg}</div>}
+          {infoMsg && <div className={style.alertOk}>{infoMsg}</div>}
 
           <div className={style.cardsGrid}>
-            {requests.map((req) => (
-              <button
-                key={req.rma}
-                type="button"
-                className={style.requestCard}
-                onClick={() => handlePickFromList(req)}
-              >
-                <div className={style.cardTop}>
-                  <div className={style.cardTitle}>
-                    {req.product?.brand} {req.product?.model}
-                  </div>
-                  <span className={style.badgeSmall}>{req.status}</span>
-                </div>
+            {ticketsMemo.map((t) => {
+              const theme = getThemeFromTicket(t);
+              const badgeCls =
+                theme === "success"
+                  ? style.badgeSmallSuccess
+                  : theme === "danger"
+                  ? style.badgeSmallDanger
+                  : theme === "info"
+                  ? style.badgeSmallInfo
+                  : theme === "warning"
+                  ? style.badgeSmallWarning
+                  : style.badgeSmallNeutral;
 
-                <div className={style.cardMeta}>
-                  <div>
-                    <span className={style.metaLabel}>RMA ID:</span> {req.rma}
+              return (
+                <button
+                  key={t.id || t.rma}
+                  type="button"
+                  className={style.requestCard}
+                  onClick={() => handlePickTicket(t)}
+                >
+                  <div className={style.cardTop}>
+                    <div className={style.cardTitle}>{t.product?.name || "Product"}</div>
+                    <span className={`${style.badgeSmall} ${badgeCls}`}>{prettyStatus(t.status)}</span>
                   </div>
-                  <div>
-                    <span className={style.metaLabel}>Submitted:</span> {formatDate(req.createdAt)}
-                  </div>
-                </div>
 
-                <div className={style.cardIssue}>
-                  <span className={style.metaLabel}>Issue:</span> {req.issueDescription}
-                </div>
-              </button>
-            ))}
+                  <div className={style.cardMeta}>
+                    <div>
+                      <span className={style.metaLabel}>RMA:</span> {t.rma}
+                    </div>
+                    <div>
+                      <span className={style.metaLabel}>Customer:</span> {t.customer?.name || "-"}
+                    </div>
+                  </div>
+
+                  <div className={style.cardIssue}>
+                    <span className={style.metaLabel}>Issue:</span> {t.issue || "-"}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {tab === "new" && (
+      {tab === "notifications" && (
         <div className={style.newWrap}>
-          <h2 className={style.sectionTitle}>New Return Request</h2>
-          <p className={style.sectionSubtitle}>Fill out the form below to submit a return request</p>
+          <h2 className={style.sectionTitle}>Notifications</h2>
 
-          <form className={style.newForm} onSubmit={handleNewSubmit}>
-            <div className={style.newGrid}>
-              <label className={style.label}>
-                Product Name <span aria-hidden="true">*</span>
-                <input
-                  className={style.input}
-                  placeholder="e.g., LED Smart TV"
-                  value={newForm.productName}
-                  onChange={(e) => setNewForm((p) => ({ ...p, productName: e.target.value }))}
-                />
-              </label>
-
-              <label className={style.label}>
-                Product Model <span aria-hidden="true">*</span>
-                <input
-                  className={style.input}
-                  placeholder="e.g., SMT-5500X"
-                  value={newForm.productModel}
-                  onChange={(e) => setNewForm((p) => ({ ...p, productModel: e.target.value }))}
-                />
-              </label>
-
-              <label className={style.label}>
-                Serial Number <span aria-hidden="true">*</span>
-                <input
-                  className={style.input}
-                  placeholder="e.g., SN123456789"
-                  value={newForm.serialNumber}
-                  onChange={(e) => setNewForm((p) => ({ ...p, serialNumber: e.target.value }))}
-                />
-              </label>
-
-              <label className={style.label}>
-                Purchase Date <span aria-hidden="true">*</span>
-                <input
-                  className={style.input}
-                  type="date"
-                  value={newForm.purchaseDate}
-                  onChange={(e) => setNewForm((p) => ({ ...p, purchaseDate: e.target.value }))}
-                />
-              </label>
-
-              <label className={style.label}>
-                Reason for Return <span aria-hidden="true">*</span>
-                <select
-                  className={style.input}
-                  value={newForm.reasonForReturn}
-                  onChange={(e) =>
-                    setNewForm((p) => ({ ...p, reasonForReturn: e.target.value }))
-                  }
+          {notifications.length === 0 ? (
+            <div className={style.blockValueMuted}>No notifications available.</div>
+          ) : (
+            <div className={style.notifList}>
+              {notifications.map((n) => (
+                <button
+                  key={n.id ?? n.rma}
+                  type="button"
+                  className={style.notifRow}
+                  onClick={() => handlePickTicket(n.ticket)}
                 >
-                  <option value="">Select a reason</option>
-                  <option value="Defective product">Defective product</option>
-                  <option value="Wrong item received">Wrong item received</option>
-                  <option value="Damaged on arrival">Damaged on arrival</option>
-                  <option value="Performance issues">Performance issues</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
-
-              <label className={style.label}>
-                Issue Description <span aria-hidden="true">*</span>
-                <textarea
-                  className={style.input}
-                  rows={3}
-                  placeholder="Please describe the issue in detail..."
-                  value={newForm.issueDescription}
-                  onChange={(e) =>
-                    setNewForm((p) => ({ ...p, issueDescription: e.target.value }))
-                  }
-                />
-              </label>
+                  <div className={style.notifLeft}>
+                    <div className={style.notifTitle}>{n.rma}</div>
+                    <div className={style.notifSub}>{n.label}</div>
+                  </div>
+                  <div className={style.notifWhen}>{n.when}</div>
+                </button>
+              ))}
             </div>
-
-            <div className={style.actions}>
-              <button className={style.primaryBtn} type="submit">
-                Submit Request
-              </button>
-              <button className={style.secondaryBtn} type="button" onClick={handleCancelNew}>
-                Cancel
-              </button>
-            </div>
-
-            {newErrorMsg && <div className={style.alertError}>{newErrorMsg}</div>}
-            {newInfoMsg && <div className={style.alertOk}>{newInfoMsg}</div>}
-          </form>
+          )}
         </div>
       )}
     </div>

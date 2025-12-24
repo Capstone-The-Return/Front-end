@@ -30,6 +30,7 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .tabBtn {
@@ -46,6 +47,10 @@
   background: #0f172a;
   border-color: #0f172a;
   color: #fff;
+}
+
+.bell {
+  margin-right: 6px;
 }
 
 .sectionTitle {
@@ -142,6 +147,11 @@
   padding: 16px;
 }
 
+.resultCard[data-theme="success"] { border-color: #bbf7d0; }
+.resultCard[data-theme="danger"] { border-color: #fecaca; }
+.resultCard[data-theme="warning"] { border-color: #fde68a; }
+.resultCard[data-theme="info"] { border-color: #bfdbfe; }
+
 .resultHeader {
   display: flex;
   justify-content: space-between;
@@ -171,9 +181,41 @@
   font-size: 13px;
 }
 
+.badgeNeutral {}
+
+.badgeSuccess {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #14532d;
+}
+
+.badgeDanger {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.badgeWarning {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.badgeInfo {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
 .timeline {
   margin: 14px 0 18px;
+  --accent: #0f172a;
 }
+
+.timeline[data-theme="success"] { --accent: #16a34a; }
+.timeline[data-theme="danger"] { --accent: #dc2626; }
+.timeline[data-theme="warning"] { --accent: #d97706; }
+.timeline[data-theme="info"] { --accent: #2563eb; }
 
 .timelineTop {
   display: flex;
@@ -200,8 +242,8 @@
 }
 
 .circleActive {
-  border-color: #0f172a;
-  background: #0f172a;
+  border-color: var(--accent);
+  background: var(--accent);
   color: #fff;
 }
 
@@ -214,7 +256,7 @@
 }
 
 .connectorActive {
-  background: #0f172a;
+  background: var(--accent);
 }
 
 .timelineLabels {
@@ -233,7 +275,7 @@
 }
 
 .stepLabelActive {
-  color: #0f172a;
+  color: var(--accent);
 }
 
 .detailsGrid {
@@ -290,46 +332,17 @@
   font-weight: 800;
 }
 
-.updatesList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 10px;
-}
-
-.updateItem {
-  border: 1px solid #f1f5f9;
-  border-radius: 14px;
-  padding: 12px;
-  background: #fff;
-}
-
-.updateTop {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
-}
-
-.updateStatus {
-  font-weight: 900;
-}
-
-.updateDate {
-  color: #64748b;
-  font-weight: 800;
-  font-size: 12px;
-}
-
-.updateMsg {
-  color: #0f172a;
-  font-weight: 700;
-}
-
 .listWrap {
   margin-top: 6px;
+}
+
+.listHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 .cardsGrid {
@@ -374,6 +387,12 @@
   white-space: nowrap;
 }
 
+.badgeSmallNeutral {}
+.badgeSmallSuccess { border-color: #bbf7d0; background: #f0fdf4; color: #14532d; }
+.badgeSmallDanger { border-color: #fecaca; background: #fef2f2; color: #7f1d1d; }
+.badgeSmallWarning { border-color: #fde68a; background: #fffbeb; color: #92400e; }
+.badgeSmallInfo { border-color: #bfdbfe; background: #eff6ff; color: #1e3a8a; }
+
 .cardMeta {
   display: grid;
   gap: 4px;
@@ -398,17 +417,150 @@
   margin-top: 6px;
 }
 
-.newForm {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 16px;
+/* ✅ Notifications dropdown box */
+.notifWrap {
+  position: relative;
 }
 
-.newGrid {
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(520px, 92vw);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 14px 38px rgba(2, 6, 23, 0.12);
+  overflow: hidden;
+  z-index: 50;
+}
+
+.dropdownEmpty {
+  padding: 14px;
+  color: #64748b;
+  font-weight: 800;
+}
+
+.dropdownItem {
+  width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 10px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 0;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dropdownItem:hover {
+  background: #f8fafc;
+}
+
+.dropdownDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #cbd5e1;
+}
+
+.dropdownDotNeutral {}
+.dropdownDotSuccess { background: #16a34a; border-color: #16a34a; }
+.dropdownDotDanger { background: #dc2626; border-color: #dc2626; }
+.dropdownDotWarning { background: #d97706; border-color: #d97706; }
+.dropdownDotInfo { background: #2563eb; border-color: #2563eb; }
+
+.dropdownMain {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dropdownTitle {
+  font-weight: 950;
+  font-size: 13px;
+}
+
+.dropdownSub {
+  font-weight: 800;
+  font-size: 12px;
+  color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdownWhen {
+  font-weight: 800;
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.dropdownViewAll {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 950;
+  text-align: left;
+}
+
+.dropdownViewAll:hover {
+  background: #f8fafc;
+}
+
+/* Notifications page list */
+.notifList {
+  display: grid;
+  gap: 10px;
+}
+
+.notifRow {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
   gap: 12px;
+  text-align: left;
+}
+
+.notifRow:hover {
+  border-color: #94a3b8;
+}
+
+.notifLeft {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.notifTitle {
+  font-weight: 950;
+}
+
+.notifSub {
+  font-weight: 800;
+  color: #475569;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notifWhen {
+  font-weight: 800;
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+  align-self: center;
 }
 
 @media (max-width: 900px) {
@@ -416,9 +568,6 @@
     grid-template-columns: 1fr;
   }
   .cardsGrid {
-    grid-template-columns: 1fr;
-  }
-  .newGrid {
     grid-template-columns: 1fr;
   }
   .label {
