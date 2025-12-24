@@ -26,11 +26,11 @@ export default function TicketCard({ ticket, onStatusChange }) {
           <option>Rejected</option>
         </select>
 
-        <select value={ticket.assignedTo}>
-          <option>Unassigned</option>
-          <option>Technician 001</option>
-          <option>Technician 002</option>
-        </select>
+        <div className={styles.assignedData}>
+          
+            {ticket.assignedTo ? ticket.assignedTo : "Unassigned"}
+         
+        </div>
       </div>
     </div>
   );
