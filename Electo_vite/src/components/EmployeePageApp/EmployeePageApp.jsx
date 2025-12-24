@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { getAllTickets, updateTicket, deleteTicket } from '../../services/employeeTickets';
 import style from './EmployeePageApp.module.css';
 import { FiUsers } from "react-icons/fi";
-import CustomerFormApp from '../../components/CustomerFormApp/CustomerFormApp.jsx';  
+import CustomerFormApp from '../../components/CustomerFormApp/CustomerFormApp.jsx'; 
+import Kanban from '../../components/Kanban/Kanban.jsx'; 
 
 const STATUS_LABELS = {
   pending: 'Pending',
@@ -31,7 +31,7 @@ export default function EmployeePageApp() {
 
   useEffect(() => {
     getAllTickets().then(setTickets);
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -48,6 +48,7 @@ export default function EmployeePageApp() {
 
     if (activeTab === 'repair') {
       return tickets.filter(ticket =>
+        ticket.record_type === 'repair' &&
         (ticket.status === 'pending' ||
          ticket.status === 'approved' ||
          ticket.status === 'in-repair' ||
@@ -58,7 +59,7 @@ export default function EmployeePageApp() {
       );
     } else if (activeTab === 'return') {
       return tickets.filter(ticket =>
-        ticket.type === 'return' &&
+        ticket.record_type === 'return' &&
         (ticket.rma?.toLowerCase().includes(query) ||
          ticket.customer?.name.toLowerCase().includes(query) ||
          ticket.product?.name.toLowerCase().includes(query))
@@ -198,69 +199,25 @@ export default function EmployeePageApp() {
         className={style.searchBar}
       />
 
-      {activeTab === 'repair' && (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className={style.kanban}>
-            {Object.entries(columns).map(([status, items]) => (
-              <Droppable droppableId={status} key={status}>
-                {provided => (
-                  <div
-                    className={`${style.column} ${glowColumn === status ? style.columnGlow : ''}`}
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                  >
-                    <h2 className={style.columnTitle}>
-                      {STATUS_LABELS[status]} ({items.length})
-                    </h2>
-
-                    {items.map((ticket, index) => (
-                      <Draggable
-                        key={ticket.id}
-                        draggableId={String(ticket.id)}
-                        index={index}
-                      >
-                        {provided => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={`${style.card} ${style[status]}`}
-                            onDoubleClick={() => openModal(ticket)}
-                          >
-                            <strong>{ticket.rma}</strong>
-                            <p>{ticket.customer?.name}</p>
-                            <p className={style.product}>{ticket.product?.name}</p>
-                            <p>Warranty: {ticket.warranty ? 'Yes' : 'No'}</p>
-                            <p>Issue: {ticket.issue}</p>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            ))}
-          </div>
-        </DragDropContext>
-      )}
+      {activeTab === 'repair' && (<Kanban
+          columns={columns}
+          glowColumn={glowColumn}
+          onDragEnd={onDragEnd}
+          onCardDoubleClick={openModal}
+          status_labels={STATUS_LABELS}
+        />)}
 
       {activeTab === 'Request' && (
         <CustomerFormApp />
       )}
 
-      {activeTab === 'return' && (
-        <div className={style.returnRequestsPlaceholder}>
-          <p>No return tickets to show yet.</p>
-        </div>
-      )}
-
-      {activeTab === 'returnRequest' && (
-        <div className={style.returnRequestsPlaceholder}>
-          <p>No return requests to show yet.</p>
-        </div>
-      )}
+      {activeTab === 'return' && (<Kanban
+          columns={columns}
+          glowColumn={glowColumn}
+          onDragEnd={onDragEnd}
+          onCardDoubleClick={openModal}
+          status_labels={STATUS_LABELS}
+        />)}
 
       {selectedTicket && (
         <div className={style.modalOverlay} onClick={closeModal}>

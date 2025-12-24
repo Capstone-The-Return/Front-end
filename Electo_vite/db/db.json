@@ -52,7 +52,8 @@
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
       "created_at": "2024-06-01T10:00:00Z",
-      "technical_status": null
+      "technical_status": null,
+      "record_type": "repair"
     },
     {
       "id": "2",
@@ -78,7 +79,8 @@
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
       "created_at": "2024-06-01T10:00:00Z",
-      "technical_status": "Rejected"
+      "technical_status": "Rejected",
+      "record_type": "repair"
     },
     {
       "id": "3",
@@ -104,7 +106,8 @@
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
       "created_at": "2024-06-01T10:00:00Z",
-      "technical_status": "Approved"
+      "technical_status": "Approved",
+      "record_type": "repair"
     },
     {
       "id": "4",
@@ -130,7 +133,8 @@
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
       "created_at": "2024-06-01T10:00:00Z",
-      "technical_status": "completed"
+      "technical_status": "completed",
+      "record_type": "repair"
     },
     {
       "id": "5",
@@ -156,7 +160,8 @@
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
       "created_at": "2024-06-01T10:00:00Z",
-      "technical_status": null
+      "technical_status": null,
+      "record_type": "repair"
     },
     {
       "id": "6",
@@ -172,7 +177,8 @@
       "status": "in-repair",
       "priority": "High",
       "assignedTo": "Unassigned",
-      "technical_status": "Pending"
+      "technical_status": "Pending",
+      "record_type": "repair"
     },
     {
       "id": "7",
@@ -188,7 +194,8 @@
       "status": "in-repair",
       "priority": "Medium",
       "assignedTo": "Technician 001",
-      "technical_status": "In Repair"
+      "technical_status": "In Repair",
+      "record_type": "repair"
     }
   ]
 }
