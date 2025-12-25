@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import style from "./CustomerViewRequestApp.module.css";
+import CustomerFormApp from '../../components/CustomerFormApp/CustomerFormApp.jsx'; 
 
 const API_BASE = "http://localhost:4000";
 
@@ -451,6 +452,7 @@ export default function CustomerViewRequestApp() {
         <div className={style.newWrap}>
           <h2 className={style.sectionTitle}>New Request</h2>
           {/* εδώ θα κουμπώσει η φόρμα του συναδέλφου */}
+          <CustomerFormApp />
         </div>
       )}
 
