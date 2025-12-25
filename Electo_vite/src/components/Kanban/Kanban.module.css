@@ -1,7 +1,9 @@
 .kanban {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;              
   gap: 1.5rem;
+  overflow-x: auto;           
+  overflow-y: hidden;
+  padding-bottom: 0.5rem;
 }
 
 .column {
@@ -9,6 +11,10 @@
   padding: 1rem;
   border-radius: 14px;
   min-height: 70vh;
+
+  min-width: 270px;           
+  max-width: 270px;
+  flex-shrink: 0;             
 }
 
 /* Sticky Headers */

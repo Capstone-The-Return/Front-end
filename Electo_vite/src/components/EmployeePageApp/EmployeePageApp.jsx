@@ -9,14 +9,24 @@ const STATUS_LABELS = {
   pending: 'Pending',
   approved: 'Approved',
   'in-repair': 'In Repair',
-  completed: 'Completed'
+  completed: 'Completed',
+  rejected: 'Rejected'
+};
+const RETURN_STATUS_LABELS = {
+  requested: 'Requested',
+  received: 'Received',
+  approved: 'Approved',
+  refunded: 'Refunded',
+  rejected: 'Rejected'
 };
 
 const TECHNICIANS = [
   'Unassigned',
   'Tech One',
   'Tech Two',
-  // Άλλα μέλη εδώ
+  'Tech Three',
+  'Tech Four',
+  'Tech Five'
 ];
 
 export default function EmployeePageApp() {
@@ -52,7 +62,8 @@ export default function EmployeePageApp() {
         (ticket.status === 'pending' ||
          ticket.status === 'approved' ||
          ticket.status === 'in-repair' ||
-         ticket.status === 'completed') &&
+         ticket.status === 'completed' ||
+         ticket.status === 'rejected') &&
         (ticket.rma?.toLowerCase().includes(query) ||
          ticket.customer?.name.toLowerCase().includes(query) ||
          ticket.product?.name.toLowerCase().includes(query))
@@ -68,13 +79,24 @@ export default function EmployeePageApp() {
     return [];
   }, [tickets, searchQuery, activeTab]);
 
+  // status columns for Kanban
   const columns = useMemo(() => ({
     pending: filteredTickets.filter(t => t.status === 'pending'),
     approved: filteredTickets.filter(t => t.status === 'approved'),
     'in-repair': filteredTickets.filter(t => t.status === 'in-repair'),
     completed: filteredTickets.filter(t => t.status === 'completed'),
+    rejected: filteredTickets.filter(t => t.status === 'rejected'),
   }), [filteredTickets]);
 
+  const returnColumns = useMemo(() => ({
+    requested: filteredTickets.filter(t => t.status === 'requested'),
+    received: filteredTickets.filter(t => t.status === 'received'),
+    approved: filteredTickets.filter(t => t.status === 'approved'),
+    refunded: filteredTickets.filter(t => t.status === 'refunded'),
+    rejected: filteredTickets.filter(t => t.status === 'rejected'),
+  }), [filteredTickets]);
+
+// handle drag-and-drop
   const onDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
 
@@ -212,11 +234,12 @@ export default function EmployeePageApp() {
       )}
 
       {activeTab === 'return' && (<Kanban
-          columns={columns}
+          columns={returnColumns}
           glowColumn={glowColumn}
-          onDragEnd={onDragEnd}
+          //onDragEnd={onDragEnd}
+          onDragEnd={null} // or undefined
           onCardDoubleClick={openModal}
-          status_labels={STATUS_LABELS}
+          status_labels={RETURN_STATUS_LABELS}
         />)}
 
       {selectedTicket && (
