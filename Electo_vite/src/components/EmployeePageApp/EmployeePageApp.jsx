@@ -89,7 +89,7 @@ export default function EmployeePageApp() {
   }), [filteredTickets]);
 
   const returnColumns = useMemo(() => ({
-    requested: filteredTickets.filter(t => t.status === 'requested'),
+    requested: filteredTickets.filter(t => t.status === 'requested' || t.status === 'pending'),
     received: filteredTickets.filter(t => t.status === 'received'),
     approved: filteredTickets.filter(t => t.status === 'approved'),
     refunded: filteredTickets.filter(t => t.status === 'refunded'),
@@ -236,8 +236,7 @@ export default function EmployeePageApp() {
       {activeTab === 'return' && (<Kanban
           columns={returnColumns}
           glowColumn={glowColumn}
-          //onDragEnd={onDragEnd}
-          onDragEnd={null} // or undefined
+          onDragEnd={onDragEnd}
           onCardDoubleClick={openModal}
           status_labels={RETURN_STATUS_LABELS}
         />)}
@@ -251,23 +250,22 @@ export default function EmployeePageApp() {
             <h2>Ticket Details: {selectedTicket.rma}</h2>
             <p><strong>Customer:</strong> {selectedTicket.customer?.name}</p>
             <p><strong>Product:</strong> {selectedTicket.product?.name}</p>
-            <p><strong>Status:</strong> {STATUS_LABELS[selectedTicket.status]}</p>
-            <p><strong>Technical Status:</strong> {selectedTicket.technical_status}</p>
-
-            <label>
-              <strong>Assigned to:</strong>
-              <select
-                className={style.modalSelect}
-                value={editData.assigned_to}
-                onChange={e => setEditData({ ...editData, assigned_to: e.target.value })}
-                disabled={saving}
-              >
-                {TECHNICIANS.map(emp => (
-                  <option key={emp} value={emp}>{emp}</option>
-                ))}
-              </select>
-            </label>
-
+            <p><strong>Status:</strong> {RETURN_STATUS_LABELS[selectedTicket.status] && RETURN_STATUS_LABELS[selectedTicket.status]}</p>
+            {selectedTicket.record_type === 'repair' && (
+              <><p><strong>Technical Status:</strong> {selectedTicket.technical_status}</p><label>
+                <strong>Assigned to:</strong>
+                <select
+                  className={style.modalSelect}
+                  value={editData.assigned_to}
+                  onChange={e => setEditData({ ...editData, assigned_to: e.target.value })}
+                  disabled={saving}
+                >
+                  {TECHNICIANS.map(emp => (
+                    <option key={emp} value={emp}>{emp}</option>
+                  ))}
+                </select>
+              </label></>
+            )}
             <label>
               <strong>Warranty:</strong>
               <select
