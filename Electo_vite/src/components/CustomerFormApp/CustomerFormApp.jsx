@@ -4,6 +4,7 @@ import { createTicket } from '../../services/employeeTickets';
 
 const CATEGORIES = ["Laptop", "Smartphone", "TV", "Home Appliance", "Accessory", "Other"];
 const STORES = ["Thessaloniki", "Athens", "Larisa", "Patra", "Heraklion"];
+const DEFAULT_PRIORITY = 'Low';
 
 function twoYearsAgo() {
   let today = new Date();
@@ -207,7 +208,8 @@ export default function CreateForm() {
       issue: data.issueDescription,
       warranty: warrantyStatus,
       phone: data.phoneNumber,
-      email: data.email
+      email: data.email,
+      priority: DEFAULT_PRIORITY
     };
 
     await handleSubmit(ticketData, trackingUrl, uploadUrl);

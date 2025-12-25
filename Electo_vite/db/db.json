@@ -195,6 +195,22 @@
       "assignedTo": "Technician 001",
       "technical_status": "In Repair",
       "record_type": "repair"
+    },
+    {
+      "id": "ed1b",
+      "rma": "RMA-2025-1CE456F3",
+      "customer": {
+        "name": "sxs scascsac"
+      },
+      "product": {
+        "name": "5165"
+      },
+      "status": "approved",
+      "record_type": "return",
+      "issue": "scascdc dsv",
+      "warranty": "InWarranty",
+      "phone": "62651464165",
+      "email": "ws@gmail.com"
     }
   ]
 }

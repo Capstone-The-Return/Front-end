@@ -1,7 +1,9 @@
 .kanban {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;              
   gap: 1.5rem;
+  overflow-x: auto;           
+  overflow-y: hidden;
+  padding-bottom: 0.5rem;
 }
 
 .column {
@@ -9,6 +11,10 @@
   padding: 1rem;
   border-radius: 14px;
   min-height: 70vh;
+
+  flex: 1;
+  min-width: 220px;
+  max-width: 320px;             
 }
 
 /* Sticky Headers */
@@ -104,4 +110,27 @@
 .completed {
   border-left: 6px solid #198754;
   color: #155724;
+}
+/* =========================
+   RETURN STATUS STYLES
+========================= */
+
+.requested {
+  border-left: 6px solid #6c757d; /* gray */
+  color: #343a40;
+}
+
+.received {
+  border-left: 6px solid #0dcaf0; /* cyan */
+  color: #055160;
+}
+
+.refunded {
+  border-left: 6px solid #20c997; /* teal */
+  color: #0f5132;
+}
+
+.rejected {
+  border-left: 6px solid #dc3545; /* red */
+  color: #842029;
 }

@@ -9,14 +9,24 @@ const STATUS_LABELS = {
   pending: 'Pending',
   approved: 'Approved',
   'in-repair': 'In Repair',
-  completed: 'Completed'
+  completed: 'Completed',
+  rejected: 'Rejected'
+};
+const RETURN_STATUS_LABELS = {
+  requested: 'Requested',
+  received: 'Received',
+  approved: 'Approved',
+  refunded: 'Refunded',
+  rejected: 'Rejected'
 };
 
 const TECHNICIANS = [
   'Unassigned',
   'Tech One',
   'Tech Two',
-  // Άλλα μέλη εδώ
+  'Tech Three',
+  'Tech Four',
+  'Tech Five'
 ];
 
 export default function EmployeePageApp() {
@@ -52,7 +62,8 @@ export default function EmployeePageApp() {
         (ticket.status === 'pending' ||
          ticket.status === 'approved' ||
          ticket.status === 'in-repair' ||
-         ticket.status === 'completed') &&
+         ticket.status === 'completed' ||
+         ticket.status === 'rejected') &&
         (ticket.rma?.toLowerCase().includes(query) ||
          ticket.customer?.name.toLowerCase().includes(query) ||
          ticket.product?.name.toLowerCase().includes(query))
@@ -68,13 +79,24 @@ export default function EmployeePageApp() {
     return [];
   }, [tickets, searchQuery, activeTab]);
 
+  // status columns for Kanban
   const columns = useMemo(() => ({
     pending: filteredTickets.filter(t => t.status === 'pending'),
     approved: filteredTickets.filter(t => t.status === 'approved'),
     'in-repair': filteredTickets.filter(t => t.status === 'in-repair'),
     completed: filteredTickets.filter(t => t.status === 'completed'),
+    rejected: filteredTickets.filter(t => t.status === 'rejected'),
   }), [filteredTickets]);
 
+  const returnColumns = useMemo(() => ({
+    requested: filteredTickets.filter(t => t.status === 'requested' || t.status === 'pending'),
+    received: filteredTickets.filter(t => t.status === 'received'),
+    approved: filteredTickets.filter(t => t.status === 'approved'),
+    refunded: filteredTickets.filter(t => t.status === 'refunded'),
+    rejected: filteredTickets.filter(t => t.status === 'rejected'),
+  }), [filteredTickets]);
+
+// handle drag-and-drop
   const onDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
 
@@ -212,11 +234,11 @@ export default function EmployeePageApp() {
       )}
 
       {activeTab === 'return' && (<Kanban
-          columns={columns}
+          columns={returnColumns}
           glowColumn={glowColumn}
           onDragEnd={onDragEnd}
           onCardDoubleClick={openModal}
-          status_labels={STATUS_LABELS}
+          status_labels={RETURN_STATUS_LABELS}
         />)}
 
       {selectedTicket && (
@@ -228,23 +250,22 @@ export default function EmployeePageApp() {
             <h2>Ticket Details: {selectedTicket.rma}</h2>
             <p><strong>Customer:</strong> {selectedTicket.customer?.name}</p>
             <p><strong>Product:</strong> {selectedTicket.product?.name}</p>
-            <p><strong>Status:</strong> {STATUS_LABELS[selectedTicket.status]}</p>
-            <p><strong>Technical Status:</strong> {selectedTicket.technical_status}</p>
-
-            <label>
-              <strong>Assigned to:</strong>
-              <select
-                className={style.modalSelect}
-                value={editData.assigned_to}
-                onChange={e => setEditData({ ...editData, assigned_to: e.target.value })}
-                disabled={saving}
-              >
-                {TECHNICIANS.map(emp => (
-                  <option key={emp} value={emp}>{emp}</option>
-                ))}
-              </select>
-            </label>
-
+            <p><strong>Status:</strong> {RETURN_STATUS_LABELS[selectedTicket.status] && RETURN_STATUS_LABELS[selectedTicket.status]}</p>
+            {selectedTicket.record_type === 'repair' && (
+              <><p><strong>Technical Status:</strong> {selectedTicket.technical_status}</p><label>
+                <strong>Assigned to:</strong>
+                <select
+                  className={style.modalSelect}
+                  value={editData.assigned_to}
+                  onChange={e => setEditData({ ...editData, assigned_to: e.target.value })}
+                  disabled={saving}
+                >
+                  {TECHNICIANS.map(emp => (
+                    <option key={emp} value={emp}>{emp}</option>
+                  ))}
+                </select>
+              </label></>
+            )}
             <label>
               <strong>Warranty:</strong>
               <select

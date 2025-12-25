@@ -5,7 +5,7 @@ export default function TicketCard({ ticket, onStatusChange }) {
     <div className={styles.card}>
       <div className={styles.header}>
         <strong>{ticket.rma}</strong>
-        <span className={`${styles.badge} ${styles[ticket.priority.toLowerCase()]}`}>
+        <span className={`${styles.badge} ${styles[ticket.priority?.toLowerCase()]}`}>
           {ticket.priority} PRIORITY
         </span>
       </div>
