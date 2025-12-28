@@ -1,33 +1,47 @@
 import { useEffect, useState, useMemo } from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { getAllTickets, updateTicket, deleteTicket } from '../../services/employeeTickets';
 import style from './EmployeePageApp.module.css';
-import { FiHome, FiUser, FiSettings, FiLogOut,FiFileText,FiSearch,FiList,FiTool, FiMenu } from "react-icons/fi";
+import { FiUsers } from "react-icons/fi";
+import CustomerFormApp from '../../components/CustomerFormApp/CustomerFormApp.jsx'; 
+import Kanban from '../../components/Kanban/Kanban.jsx'; 
 
 const STATUS_LABELS = {
   pending: 'Pending',
   approved: 'Approved',
   'in-repair': 'In Repair',
-  completed: 'Completed'
+  completed: 'Completed',
+  rejected: 'Rejected'
+};
+const RETURN_STATUS_LABELS = {
+  requested: 'Requested',
+  received: 'Received',
+  approved: 'Approved',
+  refunded: 'Refunded',
+  rejected: 'Rejected'
 };
 
 const TECHNICIANS = [
   'Unassigned',
   'Tech One',
   'Tech Two',
-  // Άλλα μέλη εδώ
+  'Tech Three',
+  'Tech Four',
+  'Tech Five'
 ];
 
-export default function EmployeePage() {
+export default function EmployeePageApp() {
   const [tickets, setTickets] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
+  const [glowColumn, setGlowColumn] = useState(null);
+  const [activeTab, setActiveTab] = useState('repair'); // default στο repair
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  useEffect(() => {// Μπορείτε να προσθέσετε φίλτρα αν χρειάζεται
+  useEffect(() => {
     getAllTickets().then(setTickets);
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -39,66 +53,89 @@ export default function EmployeePage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedTicket, saving]);
 
-  // useMemo για filteredTickets (ανανεώνεται όταν αλλάζουν tickets ή searchQuery)
   const filteredTickets = useMemo(() => {
     const query = searchQuery?.toLowerCase();
-    return tickets.filter(ticket =>
-      ticket.rma?.toLowerCase().includes(query) ||
-      ticket.customer?.name.toLowerCase().includes(query) ||
-      ticket.product?.name.toLowerCase().includes(query)
-    );
-  }, [tickets, searchQuery]);
 
-  // useMemo για columns (ανανεώνεται όταν αλλάζουν τα filteredTickets)
+    if (activeTab === 'repair') {
+      return tickets.filter(ticket =>
+        ticket.record_type === 'repair' &&
+        (ticket.status === 'pending' ||
+         ticket.status === 'approved' ||
+         ticket.status === 'in-repair' ||
+         ticket.status === 'completed' ||
+         ticket.status === 'rejected') &&
+        (ticket.rma?.toLowerCase().includes(query) ||
+         ticket.customer?.name.toLowerCase().includes(query) ||
+         ticket.product?.name.toLowerCase().includes(query))
+      );
+    } else if (activeTab === 'return') {
+      return tickets.filter(ticket =>
+        ticket.record_type === 'return' &&
+        (ticket.rma?.toLowerCase().includes(query) ||
+         ticket.customer?.name.toLowerCase().includes(query) ||
+         ticket.product?.name.toLowerCase().includes(query))
+      );
+    }
+    return [];
+  }, [tickets, searchQuery, activeTab]);
+
+  // status columns for Kanban
   const columns = useMemo(() => ({
     pending: filteredTickets.filter(t => t.status === 'pending'),
     approved: filteredTickets.filter(t => t.status === 'approved'),
     'in-repair': filteredTickets.filter(t => t.status === 'in-repair'),
     completed: filteredTickets.filter(t => t.status === 'completed'),
+    rejected: filteredTickets.filter(t => t.status === 'rejected'),
   }), [filteredTickets]);
 
+  const returnColumns = useMemo(() => ({
+    requested: filteredTickets.filter(t => t.status === 'requested' || t.status === 'pending'),
+    received: filteredTickets.filter(t => t.status === 'received'),
+    approved: filteredTickets.filter(t => t.status === 'approved'),
+    refunded: filteredTickets.filter(t => t.status === 'refunded'),
+    rejected: filteredTickets.filter(t => t.status === 'rejected'),
+  }), [filteredTickets]);
+
+// handle drag-and-drop
   const onDragEnd = async (result) => {
-  const { destination, source, draggableId } = result;
+    const { destination, source, draggableId } = result;
 
-  if (!destination) return;
+    if (!destination) return;
 
-  // No change in position or column
-  if (
-    destination.droppableId === source.droppableId &&
-    destination.index === source.index
-  ) return;
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) return;
 
-  const newStatus = destination.droppableId;
-  const id = draggableId;
+    const newStatus = destination.droppableId;
+    const id = draggableId;
 
-  const currentTechnicalStatus = tickets.find(t => t.id === id)?.technical_status;
+    const currentTechnicalStatus = tickets.find(t => t.id === id)?.technical_status;
 
-  const newTechnicalStatus = newStatus === 'in-repair' ? 'Pending' : currentTechnicalStatus;
+    const newTechnicalStatus = newStatus === 'in-repair' ? 'Pending' : currentTechnicalStatus;
 
-  // Optimistically update UI
-  setTickets(prevTickets => {
-    const updated = prevTickets.map(ticket =>
-     ticket.id === id ? { ...ticket, status: newStatus, technical_status: newTechnicalStatus } : ticket
-    );
+    setTickets(prevTickets => {
+      const updated = prevTickets.map(ticket =>
+        ticket.id === id ? { ...ticket, status: newStatus, technical_status: newTechnicalStatus } : ticket
+      );
+      return updated;
+    });
 
-    return updated;
-  });
+    setGlowColumn(newStatus);
+    setTimeout(() => setGlowColumn(null), 800);
 
-  try {
-    await updateTicket(id, { status: newStatus, technical_status: newTechnicalStatus },'Employee');
-    // No further update needed because UI updated optimistically
-  } catch (error) {
-    alert('Failed to update ticket status');
-    console.error(error);
-
-    // Rollback to previous status on error
-    setTickets(prevTickets => 
-      prevTickets.map(ticket =>
-        ticket.id === id ? { ...ticket, status: source.droppableId } : ticket
-      )
-    );
-  }
-};
+    try {
+      await updateTicket(id, { status: newStatus, technical_status: newTechnicalStatus }, 'Employee');
+    } catch (error) {
+      alert('Failed to update ticket status');
+      console.error(error);
+      setTickets(prevTickets =>
+        prevTickets.map(ticket =>
+          ticket.id === id ? { ...ticket, status: source.droppableId } : ticket
+        )
+      );
+    }
+  };
 
   const handleDelete = async (id) => {
     await deleteTicket(id);
@@ -117,6 +154,7 @@ export default function EmployeePage() {
     if (saving) return;
     setSelectedTicket(null);
     setEditData({});
+    setShowDeleteConfirm(false);
   };
 
   const handleSave = async () => {
@@ -146,72 +184,62 @@ export default function EmployeePage() {
 
   return (
     <div className={style.container}>
-      <h1 className={style.header}><FiUser className={style.icon} /> Employee Portal</h1>
+      <header className={style.headerHeavy}>
+        <FiUsers className={style.iconLarge} />
+        <h1>Employee Portal</h1>
+      </header>
       <p className={style.subtitle}>Manage all RMA tickets and requests</p>
+
+      <div className={style.tabs}>
+        <button
+          className={`${style.tabButton} ${activeTab === 'repair' ? style.activeTab : ''}`}
+          onClick={() => setActiveTab('repair')}
+        >
+          Repair Tickets
+        </button>
+         <button
+          className={`${style.tabButton} ${activeTab === 'return' ? style.activeTab : ''}`}
+          onClick={() => setActiveTab('return')}
+        >
+          Return Tickets
+        </button>
+        <button
+          className={`${style.tabButton} ${activeTab === 'Request' ? style.activeTab : ''}`}
+          onClick={() => setActiveTab('Request')}
+        >
+          New Request
+        </button>
+       
+        
+      </div>
 
       <input
         type="text"
-        placeholder="Search tickets..."
+        placeholder={`Search ${activeTab === 'repair' ? 'repair tickets' : 'return requests'}...`}
         value={searchQuery}
         onChange={e => setSearchQuery(e.target.value)}
         className={style.searchBar}
       />
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className={style.kanban}>
-          {Object.entries(columns).map(([status, items]) => (
-            <Droppable droppableId={status} key={status}>
-              {provided => (
-                <div
-                  className={style.column}
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                >
-                  <h2 className={style.columnTitle}>{STATUS_LABELS[status]}</h2>
+      {activeTab === 'repair' && (<Kanban
+          columns={columns}
+          glowColumn={glowColumn}
+          onDragEnd={onDragEnd}
+          onCardDoubleClick={openModal}
+          status_labels={STATUS_LABELS}
+        />)}
 
-                  {items.map((ticket, index) => (
-                    <Draggable
-                      key={ticket.id}
-                      draggableId={String(ticket.id)}
-                      index={index}
-                    >
-                      {provided => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className={`${style.card} ${style[status]}`}
-                          onDoubleClick={() => openModal(ticket)}
-                        >
-                          <strong>{ticket.rma}</strong>
-                          <p>{ticket.customer?.name}</p>
-                          <p className={style.product}>{ticket.product?.name}</p>
-                          <p>Warranty: {ticket.warranty ? 'Yes' : 'No'}</p>
-                          <p>Issue: {ticket.issue}</p>
+      {activeTab === 'Request' && (
+        <CustomerFormApp />
+      )}
 
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(ticket.id);
-                            }}
-                            className={style.deleteButton}
-                            aria-label="Delete ticket"
-                            title="Delete ticket"
-                          >
-                            ❌
-                          </button>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          ))}
-        </div>
-      </DragDropContext>
+      {activeTab === 'return' && (<Kanban
+          columns={returnColumns}
+          glowColumn={glowColumn}
+          onDragEnd={onDragEnd}
+          onCardDoubleClick={openModal}
+          status_labels={RETURN_STATUS_LABELS}
+        />)}
 
       {selectedTicket && (
         <div className={style.modalOverlay} onClick={closeModal}>
@@ -222,23 +250,22 @@ export default function EmployeePage() {
             <h2>Ticket Details: {selectedTicket.rma}</h2>
             <p><strong>Customer:</strong> {selectedTicket.customer?.name}</p>
             <p><strong>Product:</strong> {selectedTicket.product?.name}</p>
-            <p><strong>Status:</strong> {STATUS_LABELS[selectedTicket.status]}</p>
-            <p><strong>Technical Status:</strong> {selectedTicket.technical_status}</p>
-
-            <label>
-              <strong>Assigned to:</strong>
-              <select
-                className={style.modalSelect}
-                value={editData.assigned_to}
-                onChange={e => setEditData({ ...editData, assigned_to: e.target.value })}
-                disabled={saving}
-              >
-                {TECHNICIANS.map(emp => (
-                  <option key={emp} value={emp}>{emp}</option>
-                ))}
-              </select>
-            </label>
-
+            <p><strong>Status:</strong> {RETURN_STATUS_LABELS[selectedTicket.status] && RETURN_STATUS_LABELS[selectedTicket.status]}</p>
+            {selectedTicket.record_type === 'repair' && (
+              <><p><strong>Technical Status:</strong> {selectedTicket.technical_status}</p><label>
+                <strong>Assigned to:</strong>
+                <select
+                  className={style.modalSelect}
+                  value={editData.assigned_to}
+                  onChange={e => setEditData({ ...editData, assigned_to: e.target.value })}
+                  disabled={saving}
+                >
+                  {TECHNICIANS.map(emp => (
+                    <option key={emp} value={emp}>{emp}</option>
+                  ))}
+                </select>
+              </label></>
+            )}
             <label>
               <strong>Warranty:</strong>
               <select
@@ -259,9 +286,14 @@ export default function EmployeePage() {
             <p><strong>Purchase Date:</strong> {selectedTicket.purchase_date || 'N/A'}</p>
             <p><strong>Created at:</strong> {new Date(selectedTicket.created_at).toLocaleString()}</p>
             <p><strong>Last Updated:</strong> {new Date(selectedTicket.last_updated).toLocaleString()}</p>
-            <p><strong>Notes:</strong> {selectedTicket.notes || 'N/A'}</p>  
+            <p><strong>Notes:</strong> {selectedTicket.notes || 'N/A'}</p>
             <p><strong>Owner:</strong> {selectedTicket.owner || 'N/A'}</p>
-            <p><strong>Photo:</strong> {selectedTicket.photo_url ? <a href={selectedTicket.photo_url} target="_blank" rel="noopener noreferrer">View Photo</a> : 'N/A'}</p>
+            <p>
+              <strong>Photo:</strong>{' '}
+              {selectedTicket.photo_url
+                ? <a href={selectedTicket.photo_url} target="_blank" rel="noopener noreferrer">View Photo</a>
+                : 'N/A'}
+            </p>
 
             <div className={style.modalButtons}>
               <button
@@ -272,17 +304,52 @@ export default function EmployeePage() {
                 Cancel
               </button>
 
+              {!showDeleteConfirm && (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={saving}
+                  className={`${style.button} ${style.delete}`}
+                >
+                  Delete
+                </button>
+              )}
+
               <button
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || showDeleteConfirm}
                 className={`${style.button} ${style.save}`}
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
             </div>
+
+            {showDeleteConfirm && (
+              <div className={style.deleteConfirm}>
+                <span>Are you sure you want to delete this ticket?</span>
+                <div className={style.confirmButtons}>
+                  <button
+                    onClick={() => {
+                      handleDelete(selectedTicket.id);
+                      setShowDeleteConfirm(false);
+                      closeModal();
+                    }}
+                    className={`${style.button} ${style.delete} ${style.confirm}`}
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className={`${style.button} ${style.cancel}`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
+
     </div>
   );
 }

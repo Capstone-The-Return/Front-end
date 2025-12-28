@@ -1,66 +1,101 @@
+/* =========================
+   LAYOUT
+========================= */
+
 .container {
   min-height: 100vh;
   background: linear-gradient(135deg, #ece9e6, #ffffff);
   padding: 2rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-.kanban {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  font-family: 'Poppins', sans-serif;
 }
 
-.column {
-  background: #f4f5f7;
-  padding: 1rem;
-  border-radius: 14px;
-  min-height: 70vh;
-}
-
-.columnTitle {
-  text-align: center;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 0.8rem;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-  cursor: grab;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 22px rgba(0,0,0,0.15);
-}
-
-.product {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.pending { border-left: 6px solid #f0ad4e; }
-.approved { border-left: 6px solid #0d6efd; }
-.in-repair { border-left: 6px solid #fd7e14; }
-.completed { border-left: 6px solid #198754; }
-
-.header {
+/* Header πιο «βαρύ» και μοντέρνο */
+.headerHeavy {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  font-weight: 800;
+  font-size: 2.4rem;
+  color:linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+  margin-bottom: 0.25rem;
+  user-select: none;
 }
+
+.iconLarge {
+  font-size: 3rem;
+  color: #d9e0ec;
+  background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+  border-color: #2c5364;
+
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  user-select: none;
+}
+
+.tabButton {
+  background: none;
+  border: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #555;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.tabButton:hover {
+  background-color: #e9ecef;
+}
+
+.activeTab {
+  background-color: #0d6efd;
+  color: white;
+  box-shadow: 0 0 8px rgba(13, 110, 253, 0.7);
+  background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+  border-color: #2c5364;
+}
+
+/* Return requests placeholder */
+.returnRequestsPlaceholder {
+  padding: 3rem;
+  text-align: center;
+  font-style: italic;
+  color: #666;
+}
+
+/* Search bar tweaks */
+.searchBar {
+  width: 100%;
+  max-width: 480px;
+  padding: 0.55rem 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #ddd;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.searchBar:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 6px rgba(13, 110, 253, 0.5);
+}
+
 
 .toolbar {
   margin-bottom: 2rem;
 }
+
+
+/* =========================
+   SEARCH
+========================= */
 
 .searchBox {
   display: flex;
@@ -79,38 +114,30 @@
   flex: 1;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.5rem;
+/* search input */
+.searchBar {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  outline: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: border-color 0.2s ease;
+  margin: 0 auto 20px auto;
+  display: block;
 }
 
-/* Κάρτες tickets */
-.card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  position: relative;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-  cursor: grab;
+.searchBar:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0,123,255,0.5);
 }
 
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
-}
 
-.cardHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-}
-
-.customer {
-  color: #666;
-}
+/* =========================
+   BADGE
+========================= */
 
 .badge {
   display: inline-block;
@@ -121,163 +148,209 @@
   font-weight: 600;
 }
 
-.pending { border-left: 6px solid #f0ad4e; color: #856404; }
-.approved { border-left: 6px solid #0d6efd; color: #004085; }
-.in-repair { border-left: 6px solid #fd7e14; color: #a85b00; }
-.completed { border-left: 6px solid #198754; color: #155724; }
 
-/* Κουμπί διαγραφής */
-.delete {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #dc3545;
-  font-size: 1.4rem;
-  transition: color 0.25s ease;
+/* =========================
+   DELETE BUTTON
+========================= */
+
+/* Κρατάμε το υπάρχον modalButtons για τα κουμπιά σε σειρά */
+.modalButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
 }
 
-.delete:hover {
-  color: #a71d2a;
+/* Νέο style για το confirm block που εμφανίζεται ξεχωριστά */
+.deleteConfirm {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #b02a37;
+  background-color: #f8d7da;
+  border-radius: 8px;
+  color: #721c24;
+  font-weight: 600;
+  text-align: center;
 }
 
-/* Kanban grid */
-.kanban {
+/* Κουμπιά confirm και cancel μέσα στο confirm block */
+.confirmButtons {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Το κουμπί confirm (κόκκινο) */
+.button.confirm {
+  background-color: #b02a37;
+  color: white;
+}
+
+.button.confirm:hover:not(:disabled) {
+  background-color: #7a1a22;
+}
+
+
+
+/* =========================
+   GRID (γενικό)
+========================= */
+
+.grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.5rem;
 }
 
 
+/* =========================
+   MODAL OVERLAY
+========================= */
 
-/* Product info */
-.product {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-/* Search bar */
-.searchBar {
-  width: 100%;
-  max-width: 400px; /* όριο μεγέθους */
-  padding: 10px 15px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 25px;
-  outline: none;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: border-color 0.2s ease;
-  margin: 0 auto 20px auto; /* κεντράρισμα + κάτω margin */
-  display: block;
-}
-
-.searchBar:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 8px rgba(0,123,255,0.5);
-}
-
-/* Modal Overlay with blur */
 .modalOverlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  inset: 0;
+  background: rgba(32, 40, 60, 0.75); 
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease forwards;
+  animation: fadeInSmooth 0.35s ease forwards;
 }
 
-@keyframes fadeIn {
-  from {opacity: 0;}
-  to {opacity: 1;}
+@keyframes fadeInSmooth {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Modal content */
+
+/* =========================
+   MODAL CONTENT
+========================= */
+
 .modalContent {
-  background: white;
+  background: #fff; 
   padding: 2rem 2.5rem;
-  border-radius: 12px;
+  border-radius: 16px; 
   max-width: 480px;
   width: 95%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.12),
+    0 4px 14px rgba(0, 0, 0, 0.06); 
+  color: #222; 
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  user-select: text;
 }
 
 .modalContent h2 {
-  margin-top: 0;
   margin-bottom: 1.5rem;
-  font-weight: 600;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #042b65; 
+  letter-spacing: 0.02em;
+  user-select: none;
 }
 
 .modalContent label {
-  font-weight: 500;
-  font-size: 1rem;
-  margin-bottom: 0.4rem;
   display: block;
-  color: #444;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #555;
+  user-select: none;
 }
+
+
+/* =========================
+   SELECT
+========================= */
 
 .modalContent select {
   width: 100%;
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-size: 1rem;
-  border: 1px solid #bbb;
-  border-radius: 8px;
+  border: 1.5px solid #ccc;
+  border-radius: 12px;
   background: #fafafa;
-  transition: border-color 0.2s ease;
+  color: #444;
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20fill%3D'%23777'%20height%3D'24'%20viewBox%3D'0%200%2024%2024'%20width%3D'24'%20xmlns%3D'http%3A//www.w3.org/2000/svg'%3E%3Cpath%20d%3D'M7%2010l5%205%205-5z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg fill='%23777' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 12px center;
   background-size: 16px;
   cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modalContent select:hover {
+  border-color: #0d47a1;
+  box-shadow: 0 0 8px #0d47a1aa;
+  background-color: #f5f7fa;
 }
 
 .modalContent select:focus {
-  border-color: #007bff;
+  border-color: #0d47a1;
+  box-shadow: 0 0 12px #0d47a1cc;
   outline: none;
 }
 
-/* Modal buttons */
+
+/* =========================
+   MODAL BUTTONS
+========================= */
+
 .modalContent button {
-  cursor: pointer;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
+  padding: 0.65rem 1.5rem;
+  border-radius: 12px;
   border: none;
-  font-weight: 600;
   font-size: 1rem;
-  transition: background 0.3s ease;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.15s ease;
+  user-select: none;
 }
 
 .modalContent .save {
-  
-  background: linear-gradient(90deg, #203a43, #2c5364, #0f2027);
-  box-shadow: 0 8px 25px rgba(44, 83, 100, 0.9), 0 0 15px rgba(32, 58, 67, 0.8);
   color: white;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.7);
+  background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+  border-color: #2c5364;
 }
 
 .modalContent .save:hover:not(:disabled) {
-  background: linear-gradient(90deg, #203a43, #2c5364, #0f2027);
-  box-shadow: 0 8px 25px rgba(44, 83, 100, 0.9), 0 0 15px rgba(32, 58, 67, 0.8);
+  background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+  border-color: #2c5364;
+  transform: translateY(-2px);
 }
 
 .modalContent .cancel {
   background: #f0f0f0;
-  color: #444;
+  color: #555;
   margin-right: 1rem;
+  box-shadow: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.modalContent .cancel:hover:not(:disabled) {
-  background: #d6d6d6;
+.modalContent .cancel:hover {
+  background: #dcdcdc;
+  color: #222;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+
+/* Disabled buttons */
+.modalContent button:disabled {
+  cursor: not-allowed;
+  background: #f0f0f0;
+  color: #555;
+  opacity: 0.5;
+  box-shadow: none;
+  transform: none;
 }

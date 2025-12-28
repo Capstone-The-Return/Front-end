@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
 import styles from "./CustomerFormApp.module.css";
+import { createTicket } from '../../services/employeeTickets';
 
 const CATEGORIES = ["Laptop", "Smartphone", "TV", "Home Appliance", "Accessory", "Other"];
 const STORES = ["Thessaloniki", "Athens", "Larisa", "Patra", "Heraklion"];
+const DEFAULT_PRIORITY = 'Low';
 
 function twoYearsAgo() {
   let today = new Date();
@@ -197,18 +199,41 @@ export default function CreateForm() {
     let uploadUrl = null;
     if (uploaded) uploadUrl = uploaded.url; // 
 
-    setResult({
-      rmaCode: rmaCode,
-      trackingUrl: trackingUrl,
-      warrantyStatus: warrantyStatus,
-      uploadUrl: uploadUrl,
-      customerName: data.name + " " + data.surname,
-    });
+    const ticketData = {
+      rma: rmaCode,
+      customer: { name: `${data.name} ${data.surname}` },
+      product: { name: data.productCode },
+      status: 'pending',
+      record_type: data.requestType.toLowerCase(),
+      issue: data.issueDescription,
+      warranty: warrantyStatus,
+      phone: data.phoneNumber,
+      email: data.email,
+      priority: DEFAULT_PRIORITY
+    };
 
-    setSubmitting(false);
-    setUploadFailed(false);
-    setMessage({ type: "success", text: "Your RMA request has been submitted successfully." });
+    await handleSubmit(ticketData, trackingUrl, uploadUrl);
   }
+
+  const handleSubmit = async (ticketData, trackingUrl, uploadUrl) => {
+      try {
+        const response = await createTicket(ticketData);
+        setMessage({ type: "success", text: "Your RMA request has been submitted successfully." });
+        setResult({
+          rmaCode: ticketData.rma,
+          trackingUrl: trackingUrl,
+          warrantyStatus: ticketData.warranty,
+          uploadUrl: uploadUrl,
+          customerName: ticketData.customer.name,
+        });
+      } catch (error) {
+        setMessage({ type: "error", text: error.message || "Failed to submit RMA request." });
+      }
+      finally{
+        setSubmitting(false);
+        setUploadFailed(false);
+      }
+    };
 
   function reset() {
     setData({

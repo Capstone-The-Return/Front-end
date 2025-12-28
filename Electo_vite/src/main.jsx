@@ -27,10 +27,6 @@ const router = createBrowserRouter([
   },
   {
     path: "customerDashboard",
-    element: <CustomerPage />,
-  },
-  {
-    path: "customer-view-request",
     element: <CustomerViewRequest /> 
   },
 
