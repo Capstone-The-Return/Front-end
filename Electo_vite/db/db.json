@@ -25,6 +25,12 @@
       "role": "customer",
       "email": "customer@test.com",
       "password": "customer123"
+    },
+    { 
+      "id": "5",
+      "role": "manager",
+      "email": "manager@test.com",
+      "password": "manager123"
     }
   ],
   "tickets": [
