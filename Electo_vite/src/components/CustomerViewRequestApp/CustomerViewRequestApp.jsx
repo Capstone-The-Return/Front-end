@@ -1,32 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import style from "./CustomerViewRequestApp.module.css";
-import CustomerFormApp from '../../components/CustomerFormApp/CustomerFormApp.jsx'; 
 
 const API_BASE = "http://localhost:4000";
 
-const normalize = (v) => (v || "").trim().toUpperCase();
-
-const prettyStatus = (raw) => {
-  const s = (raw || "").trim();
-  if (!s) return "-";
-
-  const key = normalize(s);
-
-  const map = {
-    PENDING: "Pending",
-    "IN-REPAIR": "In Repair",
-    "IN REPAIR": "In Repair",
-    COMPLETED: "Completed",
-    CLOSED: "Closed",
-
-    APPROVED: "Approved",
-    REJECTED: "Rejected",
-    REJECT: "Rejected",
-    "IN REPAIR": "In Repair",
-  };
-
-  return map[key] || s;
-};
+const normalizeRma = (v) => (v || "").trim().toUpperCase();
 
 const formatDate = (iso) => {
   if (!iso) return "-";
@@ -39,25 +16,15 @@ const formatDate = (iso) => {
 
 const STEPS = ["Submitted", "Approved", "In Repair", "Completed"];
 
-function getTicketUpdatedAtMs(t) {
-  const raw = t?.last_updated || t?.created_at || t?.createdAt || t?.date;
-  if (!raw) return 0;
-  const ms = new Date(raw).getTime();
-  return Number.isFinite(ms) ? ms : 0;
-}
-
 function getStepIndexFromTicket(t) {
   if (!t) return 0;
 
-  const status = normalize(t.status); // pending | in-repair | completed
-  const tech = normalize(t.technical_status); // Approved | Rejected | Pending | etc.
+  const status = normalizeRma(t.status);
+  const tech = normalizeRma(t.technical_status);
 
   if (status.includes("COMPLETED") || tech.includes("COMPLETED") || tech.includes("CLOSED")) return 3;
   if (status.includes("IN-REPAIR") || status.includes("IN REPAIR") || tech.includes("IN REPAIR")) return 2;
   if (tech.includes("APPROVED")) return 1;
-
-  // rejected: το δείχνουμε στο 2ο βήμα (με κόκκινο theme)
-  if (tech.includes("REJECT")) return 1;
 
   return 0;
 }
@@ -65,8 +32,8 @@ function getStepIndexFromTicket(t) {
 function getThemeFromTicket(t) {
   if (!t) return "neutral";
 
-  const status = normalize(t.status);
-  const tech = normalize(t.technical_status);
+  const status = normalizeRma(t.status);
+  const tech = normalizeRma(t.technical_status);
 
   if (tech.includes("REJECT")) return "danger";
   if (status.includes("COMPLETED") || tech.includes("COMPLETED") || tech.includes("CLOSED")) return "success";
@@ -76,23 +43,14 @@ function getThemeFromTicket(t) {
   return "neutral";
 }
 
-// ✅ fix: αν status === technical_status -> δείξε μόνο ένα (πχ "Completed")
-function buildBadgeText(statusRaw, techRaw) {
-  const statusN = normalize(statusRaw);
-  const techN = normalize(techRaw);
-
-  const statusPretty = prettyStatus(statusRaw);
-  const techPretty = prettyStatus(techRaw);
-
-  if (!techRaw) return statusPretty;
-  if (techN && statusN === techN) return statusPretty;
-
-  return `${statusPretty} • ${techPretty}`;
-}
-
 function StatusBadge({ ticket }) {
   const theme = getThemeFromTicket(ticket);
-  const text = buildBadgeText(ticket?.status, ticket?.technical_status);
+  const status = ticket?.status || "-";
+  const tech = ticket?.technical_status;
+
+  // ✅ αποφυγή "completed • completed"
+  let text = status;
+  if (tech && normalizeRma(tech) !== normalizeRma(status)) text = `${status} • ${tech}`;
 
   const cls =
     theme === "success"
@@ -103,22 +61,18 @@ function StatusBadge({ ticket }) {
       ? style.badgeInfo
       : theme === "warning"
       ? style.badgeWarning
-      : style.badgeNeutral;
+      : style.badge;
 
   return <span className={`${style.badge} ${cls}`}>{text}</span>;
 }
 
-function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
+function ProgressBar({ currentIndex = 0 }) {
   return (
-    <div className={style.timeline} data-theme={theme}>
+    <div className={style.timeline}>
       <div className={style.timelineTop}>
         {STEPS.map((s, i) => (
           <div key={s} className={style.topItem}>
-            <div
-              className={`${style.circle} ${i <= currentIndex ? style.circleActive : ""}`}
-              aria-label={s}
-              title={s}
-            >
+            <div className={`${style.circle} ${i <= currentIndex ? style.circleActive : ""}`} title={s}>
               {i <= currentIndex ? "✓" : ""}
             </div>
 
@@ -162,7 +116,7 @@ function TicketDetails({ ticket }) {
         <StatusBadge ticket={ticket} />
       </div>
 
-      <ProgressBar currentIndex={stepIndex} theme={theme} />
+      <ProgressBar currentIndex={stepIndex} />
 
       <div className={style.detailsGrid}>
         <div className={style.field}>
@@ -222,7 +176,7 @@ function TicketDetails({ ticket }) {
 }
 
 export default function CustomerViewRequestApp() {
-  const [tab, setTab] = useState("track"); // "new" | "track" | "list" | "notifications"
+  const [tab, setTab] = useState("track"); // "new" | "track" | "list"
 
   const [tickets, setTickets] = useState([]);
   const ticketsMemo = useMemo(() => tickets || [], [tickets]);
@@ -234,9 +188,10 @@ export default function CustomerViewRequestApp() {
   const [infoMsg, setInfoMsg] = useState("");
   const [ticket, setTicket] = useState(null);
 
-  // Notifications dropdown (όπως “παλιά” — μόνο dropdown)
+  // Notifications dropdown
   const [notifOpen, setNotifOpen] = useState(false);
-  const notifWrapRef = useRef(null);
+  const notifBtnRef = useRef(null);
+  const notifMenuRef = useRef(null);
 
   const clearMessages = () => {
     setErrorMsg("");
@@ -247,9 +202,8 @@ export default function CustomerViewRequestApp() {
     const res = await fetch(`${API_BASE}/tickets`);
     if (!res.ok) throw new Error("Failed to load tickets");
     const data = await res.json();
-    const arr = Array.isArray(data) ? data : [];
-    setTickets(arr);
-    return arr;
+    setTickets(Array.isArray(data) ? data : []);
+    return data;
   }
 
   useEffect(() => {
@@ -257,37 +211,44 @@ export default function CustomerViewRequestApp() {
       try {
         await loadTickets();
       } catch {
-        // no spam on mount
+        // silent
       }
     })();
   }, []);
 
-  // close dropdown when clicking outside
+  // close dropdown on outside click
   useEffect(() => {
-    function onDocDown(e) {
-      if (!notifWrapRef.current) return;
-      if (!notifWrapRef.current.contains(e.target)) setNotifOpen(false);
-    }
-    document.addEventListener("mousedown", onDocDown);
-    return () => document.removeEventListener("mousedown", onDocDown);
-  }, []);
+    if (!notifOpen) return;
+
+    const onDown = (e) => {
+      const btn = notifBtnRef.current;
+      const menu = notifMenuRef.current;
+      if (btn && btn.contains(e.target)) return;
+      if (menu && menu.contains(e.target)) return;
+      setNotifOpen(false);
+    };
+
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [notifOpen]);
 
   const notifications = useMemo(() => {
-    const sorted = [...ticketsMemo].sort((a, b) => getTicketUpdatedAtMs(b) - getTicketUpdatedAtMs(a));
-    return sorted.map((t) => ({
-      id: t.id,
-      rma: t.rma,
-      when: formatDate(t.last_updated || t.created_at || t.date),
-      label: buildBadgeText(t.status, t.technical_status),
-      ticket: t,
-      theme: getThemeFromTicket(t),
-    }));
+    const arr = [...ticketsMemo];
+
+    const getTs = (t) => {
+      const raw = t.last_updated || t.updatedAt || t.created_at || t.createdAt || t.date || null;
+      const ts = raw ? new Date(raw).getTime() : 0;
+      return Number.isFinite(ts) ? ts : 0;
+    };
+
+    arr.sort((a, b) => getTs(b) - getTs(a));
+    return arr.slice(0, 4);
   }, [ticketsMemo]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
 
-    const query = normalize(rma);
+    const query = normalizeRma(rma);
     clearMessages();
     setTicket(null);
 
@@ -311,7 +272,7 @@ export default function CustomerViewRequestApp() {
         }
       }
 
-      const foundLocal = ticketsMemo.find((x) => normalize(x.rma) === query);
+      const foundLocal = ticketsMemo.find((x) => normalizeRma(x.rma) === query);
       if (!foundLocal) {
         setErrorMsg("No ticket found for this RMA number.");
       } else {
@@ -336,8 +297,7 @@ export default function CustomerViewRequestApp() {
   const openTrack = () => setTab("track");
   const openList = () => setTab("list");
 
-  const handlePickTicket = (t) => {
-    setNotifOpen(false);
+  const handlePickFromList = (t) => {
     setTicket(t);
     setRma(t.rma);
     clearMessages();
@@ -345,9 +305,10 @@ export default function CustomerViewRequestApp() {
     setTab("track");
   };
 
-  const openNotificationsPage = () => {
+  // ✅ ΜΟΝΟ αυτό θες: View all → να ανοίγει View My Requests
+  const handleViewAllNotifications = () => {
     setNotifOpen(false);
-    setTab("notifications");
+    setTab("list");
   };
 
   return (
@@ -383,61 +344,59 @@ export default function CustomerViewRequestApp() {
             View My Requests
           </button>
 
-          {/* ✅ Dropdown box όπως πριν: ανοίγει/κλείνει και δείχνει λίστα + View all */}
-          <div className={style.notifWrap} ref={notifWrapRef}>
+          {/* Notifications dropdown (floating, ΔΕΝ χαλάει layout) */}
+          <div className={style.notifWrap}>
             <button
-              className={`${style.tabBtn} ${notifOpen || tab === "notifications" ? style.tabBtnActive : ""}`}
-              onClick={() => setNotifOpen((p) => !p)}
+              ref={notifBtnRef}
+              className={`${style.tabBtn} ${notifOpen ? style.tabBtnActive : ""}`}
               type="button"
-              aria-haspopup="menu"
-              aria-expanded={notifOpen ? "true" : "false"}
+              onClick={() => setNotifOpen((v) => !v)}
               title="Notifications"
             >
               <span className={style.bell} aria-hidden="true">🔔</span> Notifications
             </button>
 
             {notifOpen && (
-              <div className={style.dropdown} role="menu">
+              <div ref={notifMenuRef} className={style.notifMenu}>
                 {notifications.length === 0 ? (
-                  <div className={style.dropdownEmpty}>No notifications yet.</div>
+                  <div className={style.notifEmpty}>No notifications yet.</div>
                 ) : (
                   <>
-                    {notifications.slice(0, 4).map((n) => {
+                    {notifications.map((t) => {
+                      const theme = getThemeFromTicket(t);
+
                       const dotCls =
-                        n.theme === "success"
-                          ? style.dropdownDotSuccess
-                          : n.theme === "danger"
-                          ? style.dropdownDotDanger
-                          : n.theme === "info"
-                          ? style.dropdownDotInfo
-                          : n.theme === "warning"
-                          ? style.dropdownDotWarning
-                          : style.dropdownDotNeutral;
+                        theme === "success"
+                          ? style.notifDotSuccess
+                          : theme === "danger"
+                          ? style.notifDotDanger
+                          : theme === "info"
+                          ? style.notifDotInfo
+                          : theme === "warning"
+                          ? style.notifDotWarning
+                          : style.notifDot;
+
+                      const line2 = t.technical_status
+                        ? normalizeRma(t.technical_status) === normalizeRma(t.status)
+                          ? `${t.status}`
+                          : `${t.status} • ${t.technical_status}`
+                        : `${t.status}`;
+
+                      const when = formatDate(t.last_updated || t.created_at || t.date);
 
                       return (
-                        <button
-                          key={n.id ?? n.rma}
-                          className={style.dropdownItem}
-                          type="button"
-                          onClick={() => handlePickTicket(n.ticket)}
-                          role="menuitem"
-                        >
-                          <span className={`${style.dropdownDot} ${dotCls}`} aria-hidden="true" />
-                          <span className={style.dropdownMain}>
-                            <span className={style.dropdownTitle}>{n.rma}</span>
-                            <span className={style.dropdownSub}>{n.label}</span>
-                          </span>
-                          <span className={style.dropdownWhen}>{n.when}</span>
-                        </button>
+                        <div key={t.id || t.rma} className={style.notifItem}>
+                          <span className={`${style.notifDot} ${dotCls}`} aria-hidden="true" />
+                          <div className={style.notifText}>
+                            <div className={style.notifTitle}>{t.rma}</div>
+                            <div className={style.notifSub}>{line2}</div>
+                          </div>
+                          <div className={style.notifDate}>{when}</div>
+                        </div>
                       );
                     })}
 
-                    <button
-                      className={style.dropdownViewAll}
-                      type="button"
-                      onClick={openNotificationsPage}
-                      role="menuitem"
-                    >
+                    <button type="button" className={style.notifViewAll} onClick={handleViewAllNotifications}>
                       View all →
                     </button>
                   </>
@@ -451,11 +410,10 @@ export default function CustomerViewRequestApp() {
       {tab === "new" && (
         <div className={style.newWrap}>
           <h2 className={style.sectionTitle}>New Request</h2>
-          {/* εδώ θα κουμπώσει η φόρμα του συναδέλφου */}
-          <CustomerFormApp />
         </div>
       )}
 
+      {/* Track RMA εμφανίζεται ΜΟΝΟ στο track tab */}
       {tab === "track" && (
         <>
           <div className={style.searchCard}>
@@ -493,6 +451,7 @@ export default function CustomerViewRequestApp() {
         </>
       )}
 
+      {/* View My Requests tab: ΜΟΝΟ η λίστα */}
       {tab === "list" && (
         <div className={style.listWrap}>
           <div className={style.listHeaderRow}>
@@ -532,18 +491,18 @@ export default function CustomerViewRequestApp() {
                   ? style.badgeSmallInfo
                   : theme === "warning"
                   ? style.badgeSmallWarning
-                  : style.badgeSmallNeutral;
+                  : style.badgeSmall;
 
               return (
                 <button
                   key={t.id || t.rma}
                   type="button"
                   className={style.requestCard}
-                  onClick={() => handlePickTicket(t)}
+                  onClick={() => handlePickFromList(t)}
                 >
                   <div className={style.cardTop}>
                     <div className={style.cardTitle}>{t.product?.name || "Product"}</div>
-                    <span className={`${style.badgeSmall} ${badgeCls}`}>{prettyStatus(t.status)}</span>
+                    <span className={`${style.badgeSmall} ${badgeCls}`}>{t.status}</span>
                   </div>
 
                   <div className={style.cardMeta}>
@@ -564,33 +523,7 @@ export default function CustomerViewRequestApp() {
           </div>
         </div>
       )}
-
-      {tab === "notifications" && (
-        <div className={style.newWrap}>
-          <h2 className={style.sectionTitle}>Notifications</h2>
-
-          {notifications.length === 0 ? (
-            <div className={style.blockValueMuted}>No notifications available.</div>
-          ) : (
-            <div className={style.notifList}>
-              {notifications.map((n) => (
-                <button
-                  key={n.id ?? n.rma}
-                  type="button"
-                  className={style.notifRow}
-                  onClick={() => handlePickTicket(n.ticket)}
-                >
-                  <div className={style.notifLeft}>
-                    <div className={style.notifTitle}>{n.rma}</div>
-                    <div className={style.notifSub}>{n.label}</div>
-                  </div>
-                  <div className={style.notifWhen}>{n.when}</div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
+// 
