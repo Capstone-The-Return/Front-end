@@ -11,7 +11,7 @@ export default function TechnicalApp() {
   useEffect(() => {
     getAllTickets().then(data => {
       // Κρατάμε τα tickets που έχουν technical_status (όχι null)
-      setTickets(data.filter(t => t.technical_status !== null)); 
+      setTickets(data.filter(t => t.technical_status !== null && t.record_type !== 'return')); 
     });
   }, []);
 
