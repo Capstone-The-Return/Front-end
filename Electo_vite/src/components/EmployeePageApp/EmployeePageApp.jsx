@@ -35,6 +35,10 @@ const formatDate = (iso) => {
   if (!iso) return "-";
   try {
     const date = new Date(iso);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) return "-";
+    
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
@@ -47,7 +51,7 @@ const formatDate = (iso) => {
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
   } catch {
-    return iso;
+    return "-";
   }
 };
 
@@ -416,9 +420,11 @@ export default function EmployeePageApp() {
             <h2>Ticket Details: {selectedTicket.rma}</h2>
             <p><strong>Customer:</strong> {selectedTicket.customer?.name}</p>
             <p><strong>Product:</strong> {selectedTicket.product?.name}</p>
-            <p><strong>Status:</strong> {RETURN_STATUS_LABELS[selectedTicket.status]}</p>
+            {selectedTicket.record_type === 'return' && (<p><strong>Status:</strong> {RETURN_STATUS_LABELS[selectedTicket.status]}</p>)}
+            
             {selectedTicket.record_type === 'repair' && (
               <>
+              <p><strong>Status:</strong> {STATUS_LABELS[selectedTicket.status]}</p>
                 <p><strong>Technical Status:</strong> {selectedTicket.technical_status}</p>
                 <label>
                   <strong>Assigned to:</strong>
