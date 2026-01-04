@@ -41,7 +41,7 @@ export default function TicketCard({ ticket, onStatusChange }) {
 
         <div className={styles.assignedData}>
           {/* Display assigned technician name or Unassigned placeholder */}
-          {ticket.assignedTo ? ticket.assignedTo : "Unassigned"}
+          {ticket.assigned_to ? ticket.assigned_to : "Unassigned"}
         </div>
       </div>
     </div>

@@ -152,8 +152,8 @@ function EmailCheckZontana(email) {
     return "Email must contain exactly one @ symbol.";
   }
 
-  if (!(t.endsWith(".com") || t.endsWith(".com.gr") || t.endsWith(".edu.gr"))) {
-    return "Email must end with .com or .com.gr or .edu.gr.";
+  if (!(t.endsWith(".com") || t.endsWith(".com.gr") || t.endsWith(".edu.gr") || t.endsWith(".gr"))) {
+    return "Email must end with .com or .com.gr or .edu.gr or .gr.";
   }
 
   return "";
@@ -384,6 +384,7 @@ export default function CreateForm() {
 
     // status
     let finalStatus = "";
+    let in_warranty = false;
 
     if (data.requestType === "repair") {
       let w = Warranty(data.purchaseDate);
@@ -395,6 +396,7 @@ export default function CreateForm() {
       }
 
       finalStatus = w.ok ? "In warranty" : "Not in warranty. Needs review";
+      in_warranty = w.ok;
     }
 
     if (data.requestType === "return") {
@@ -407,6 +409,7 @@ export default function CreateForm() {
       }
 
       finalStatus = "Eligible for return (within 14 days)";
+      in_warranty = r.ok;
     }
 
     // create result
@@ -427,14 +430,18 @@ export default function CreateForm() {
     const ticketData = {
       rma: rmaCode,
       customer: { name: `${data.name} ${data.surname}` },
-      product: { name: data.productCode },
+      product: { name: data.productCode, category: data.category },
       status: 'pending',
       record_type: data.requestType.toLowerCase(),
       issue: data.issueDescription,
-      warranty: warrantyStatus,
+      warranty: in_warranty,
       phone: data.phoneNumber,
       email: data.email,
-      priority: DEFAULT_PRIORITY
+      priority: DEFAULT_PRIORITY,
+      created_at: new Date().toISOString(),
+      last_updated: new Date().toISOString(),
+      purchase_date : data.purchaseDate,
+      store: data.store
     };
 
     await handleSubmit(ticketData, trackingUrl, uploadUrl);
@@ -447,7 +454,7 @@ export default function CreateForm() {
         setResult({
           rmaCode: ticketData.rma,
           trackingUrl: trackingUrl,
-          warrantyStatus: ticketData.warranty,
+          warrantyStatus: ticketData.in_warranty,
           uploadUrl: uploadUrl,
           customerName: ticketData.customer.name,
         });

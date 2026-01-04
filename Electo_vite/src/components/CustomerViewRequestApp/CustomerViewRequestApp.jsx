@@ -248,11 +248,6 @@ function TicketDetails({ ticket }) {
         </div>
 
         <div className={style.field}>
-          <div className={style.fieldLabel}>Serial Number</div>
-          <div className={style.fieldValue}>{ticket.serial_number || "-"}</div>
-        </div>
-
-        <div className={style.field}>
           <div className={style.fieldLabel}>Assigned To</div>
           <div className={style.fieldValue}>{ticket.assigned_to || ticket.assignedTo || "-"}</div>
         </div>
