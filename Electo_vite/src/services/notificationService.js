@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:3000/notifications';
+const BASE = 'http://localhost:4000/notifications';
 
 // Get all notifications (sorted newest first)
 export const getAllNotifications = async () => {
@@ -89,6 +89,22 @@ export const notifyTechnicalStatusChange = async (ticket, oldTechStatus, newTech
     new_status: ticket.status,
     old_technical_status: oldTechStatus,
     new_technical_status: newTechStatus,
+    for_role: forRole
+  });
+};
+
+// 3. Notify when a TECHNICAL NOTE is added
+export const notifyTechnicalNoteAdded = async (ticket, technicalNote, forRole = 'employee') => {
+  return createNotification({
+    ticket_id: ticket.id,
+    rma: ticket.rma,
+    type: 'technical_note_added',
+    message: `New technical note added: "${technicalNote.length > 50 ? technicalNote.substring(0, 50) + '...' : technicalNote}"`,
+    old_status: ticket.status,
+    new_status: ticket.status,
+    old_technical_status: ticket.technical_status || null,
+    new_technical_status: ticket.technical_status || null,
+    technical_note: technicalNote,
     for_role: forRole
   });
 };

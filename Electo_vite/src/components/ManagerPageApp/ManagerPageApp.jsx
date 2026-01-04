@@ -149,7 +149,7 @@ export default function ManagerPageApp() {
 
     // Category distribution (db doesn't have category, so we use product.name)
     const categoryCounts = tickets.reduce((acc, t) => {
-      const key = t.product?.name || "Unknown";
+      const key = t.product?.category || "Unknown";
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
@@ -286,7 +286,7 @@ export default function ManagerPageApp() {
 
       {/* Charts row 2 */}
       <section className={style.grid2}>
-        <ChartCard title="RMAs by Product (from db.json)">
+        <ChartCard title="RMAs by Product">
           <div className={style.chartWrap}>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={dashboard.categoryStats}>

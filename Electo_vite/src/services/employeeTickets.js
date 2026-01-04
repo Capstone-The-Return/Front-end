@@ -1,6 +1,7 @@
 import { 
   notifyTicketCreated, 
-  notifyTechnicalStatusChange 
+  notifyTechnicalStatusChange,
+  notifyTechnicalNoteAdded
 } from './notificationService';
 
 const BASE = 'http://localhost:4000/tickets';
@@ -24,7 +25,7 @@ export const createTicket = async (data) => {
   
   const ticket = await res.json();
   
-  // ✅ NOTIFY: New ticket created
+  // NOTIFY: New ticket created
   try {
     await notifyTicketCreated(ticket, 'employee');
   } catch (err) {
@@ -71,6 +72,10 @@ export const updateTicket = async (id, data, updatedBy = 'system') => {
           data.technical_status, 
           'employee'
         );
+      }
+
+      if(data.technical_notes){
+        await notifyTechnicalNoteAdded(updatedTicket,data.technical_notes,'employee');
       }
     }
   } catch (err) {

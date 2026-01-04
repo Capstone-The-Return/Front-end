@@ -386,7 +386,7 @@ export default function EmployeePageApp() {
 
       <input
         type="text"
-        placeholder={`Search ${activeTab === 'repair' ? 'repair tickets' : 'return requests'}...`}
+        placeholder={`Search ${activeTab === 'repair' ? 'repair tickets' : 'return tickets'}...`}
         value={searchQuery}
         onChange={e => setSearchQuery(e.target.value)}
         className={style.searchBar}
@@ -426,6 +426,7 @@ export default function EmployeePageApp() {
               <>
               <p><strong>Status:</strong> {STATUS_LABELS[selectedTicket.status]}</p>
                 <p><strong>Technical Status:</strong> {selectedTicket.technical_status}</p>
+                <p><strong>Technical Notes:</strong> {selectedTicket.technical_notes}</p>
                 <label>
                   <strong>Assigned to:</strong>
                   <select
@@ -455,9 +456,8 @@ export default function EmployeePageApp() {
             </label>
             <p><strong>Issue:</strong> {selectedTicket.issue}</p>
             <p><strong>Contact:</strong> {selectedTicket.phone || 'N/A'}, {selectedTicket.email || 'N/A'}</p>
-            <p><strong>Address:</strong> {selectedTicket.address || 'N/A'}</p>
-            <p><strong>Serial Number:</strong> {selectedTicket.serial_number || 'N/A'}</p>
-            <p><strong>Purchase Date:</strong> {selectedTicket.purchase_date || 'N/A'}</p>
+            <p><strong>Purchase Date:</strong> {new Date(selectedTicket.purchase_date).toLocaleString() || 'N/A'}</p>
+            <p><strong>Store:</strong> {selectedTicket.store || 'N/A'}</p>
             <p><strong>Created at:</strong> {new Date(selectedTicket.created_at).toLocaleString()}</p>
             <p><strong>Last Updated:</strong> {new Date(selectedTicket.last_updated).toLocaleString()}</p>
             <p><strong>Notes:</strong> {selectedTicket.notes || 'N/A'}</p>

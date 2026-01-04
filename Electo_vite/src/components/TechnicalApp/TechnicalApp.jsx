@@ -36,7 +36,7 @@ export default function TechnicalApp() {
     const fetchData = () => {
       getAllTickets().then(data => {
         // Filter only tickets relevant to the technical department
-        setTickets(data.filter(t => t.technical_status !== null && t.record_type !== 'return')); 
+        setTickets(data.filter(t => t.technical_status !== null && t.record_type !== 'return' && t.status == "in-repair")); 
       });
     };
 
