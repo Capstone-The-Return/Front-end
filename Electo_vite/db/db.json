@@ -79,7 +79,8 @@
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
       "created_at": "2024-06-01T10:00:00Z",
-      "technical_status": "Completed"
+      "technical_status": "Pending",
+      "technical_notes": "Waiting for parts"
     },
     {
       "id": "3",
@@ -105,7 +106,7 @@
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
       "created_at": "2024-06-01T10:00:00Z",
-      "technical_status": "Approved",
+      "technical_status": "Pending",
       "record_type": "repair"
     },
     {
@@ -132,7 +133,7 @@
       "owner": "Anasasia Kesisi",
       "last_updated": "2024-06-10T15:30:00Z",
       "created_at": "2024-06-01T10:00:00Z",
-      "technical_status": "completed",
+      "technical_status": "Approved",
       "record_type": "repair"
     },
     {
@@ -176,7 +177,7 @@
       "status": "in-repair",
       "priority": "High",
       "assignedTo": "Unassigned",
-      "technical_status": "Pending",
+      "technical_status": "Approved",
       "record_type": "repair"
     },
     {
@@ -210,7 +211,8 @@
       "issue": "scascdc dsv",
       "warranty": "InWarranty",
       "phone": "62651464165",
-      "email": "ws@gmail.com"
+      "email": "ws@gmail.com",
+      "technical_status": "Approved"
     }
   ]
 }
