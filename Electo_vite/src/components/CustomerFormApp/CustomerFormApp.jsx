@@ -6,9 +6,10 @@ import flakeB from "../../assets/snowflake (1).png";
 import flakeC from "../../assets/snowflake (2).png";
 import flakeD from "../../assets/snowflake (3).png";
 import winter from "../../assets/winter.png";
+import { createTicket } from '../../services/employeeTickets';
 
-const CATEGORIES = ["Laptop", "Smartphone", "TV", "Home Appliance", "Accessory", "Other"];
-const STORES = ["Thessaloniki", "Athens", "Larisa", "Patra", "Heraklion", "Online Store"];
+// const CATEGORIES = ["Laptop", "Smartphone", "TV", "Home Appliance", "Accessory", "Other"];
+// const STORES = ["Thessaloniki", "Athens", "Larisa", "Patra", "Heraklion", "Online Store"];
 
 /* labels (για να βγαίνει name is required */
 const FIELD_LABELS = {
@@ -39,7 +40,7 @@ const REQUIRED_FIELDS = [
 ];
 
 /* Βοηθητικές συναρτησεις */
-import { createTicket } from '../../services/employeeTickets';
+
 
 const CATEGORIES = ["Laptop", "Smartphone", "TV", "Home Appliance", "Accessory", "Other"];
 const STORES = ["Thessaloniki", "Athens", "Larisa", "Patra", "Heraklion"];
