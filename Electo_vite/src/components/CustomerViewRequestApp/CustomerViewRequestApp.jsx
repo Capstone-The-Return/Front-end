@@ -1,12 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import style from "./CustomerViewRequestApp.module.css";
-import requestsData from "../../pages/mock/requests.json";
-// must connect to our database
-const STORAGE_KEY = "electo_requests_v1";
+import CustomerFormApp from "../../components/CustomerFormApp/CustomerFormApp.jsx";
 
-const normalizeRma = (v) => (v || "").trim().toUpperCase();
+const API_BASE = "http://localhost:4000";
+
+const normalize = (v) => (v || "").trim().toUpperCase();
+
+const prettyStatus = (raw) => {
+  const s = (raw || "").trim();
+  if (!s) return "-";
+
+  const key = normalize(s);
+  const map = {
+    PENDING: "Pending",
+    "IN-REPAIR": "In Repair",
+    "IN REPAIR": "In Repair",
+    COMPLETED: "Completed",
+    CLOSED: "Closed",
+
+    APPROVED: "Approved",
+    REJECTED: "Rejected",
+    REJECT: "Rejected",
+  };
+  return map[key] || s;
+};
 
 const formatDate = (iso) => {
+  if (!iso) return "-";
   try {
     return new Date(iso).toLocaleString();
   } catch {
@@ -16,43 +36,135 @@ const formatDate = (iso) => {
 
 const STEPS = ["Submitted", "Approved", "In Repair", "Completed"];
 
-function getStepIndex(req) {
-  if (!req) return 0;
+function getTicketUpdatedAtMs(t) {
+  const raw = t?.last_updated || t?.created_at || t?.createdAt || t?.date;
+  if (!raw) return 0;
+  const ms = new Date(raw).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
 
-  const status = normalizeRma(req.status);
+function getStepIndexFromTicket(t) {
+  if (!t) return 0;
 
-  // closed/completed
-  if (status.includes("CLOSED") || status.includes("COMPLETED")) return 3;
+  const status = normalize(t.status);
+  const tech = normalize(t.technical_status);
 
-  // in repair / in progress
-  if (
-    status.includes("IN PROGRESS") ||
-    status.includes("IN REPAIR") ||
-    status.includes("REPAIR")
-  )
-    return 2;
+  if (status.includes("COMPLETED") || tech.includes("COMPLETED") || tech.includes("CLOSED")) return 3;
+  if (status.includes("IN-REPAIR") || status.includes("IN REPAIR") || tech.includes("IN REPAIR")) return 2;
+  if (tech.includes("APPROVED")) return 1;
 
-  // approved-ish
-  if (
-    status.includes("APPROVED") ||
-    status.includes("COVERED") ||
-    status.includes("ASSIGNED")
-  )
-    return 1;
+  // Rejected: σταματάει στο step "Approved" αλλά με danger theme
+  if (tech.includes("REJECT")) return 1;
 
-  // default submitted
   return 0;
 }
 
-function ProgressBar({ currentIndex = 0 }) {
+function getThemeFromTicket(t) {
+  if (!t) return "neutral";
+
+  const status = normalize(t.status);
+  const tech = normalize(t.technical_status);
+
+  if (tech.includes("REJECT")) return "danger";
+  if (status.includes("COMPLETED") || tech.includes("COMPLETED") || tech.includes("CLOSED")) return "success";
+  if (status.includes("IN-REPAIR") || status.includes("IN REPAIR") || tech.includes("IN REPAIR")) return "info";
+  if (status.includes("PENDING") || tech.includes("PENDING")) return "warning";
+
+  return "neutral";
+}
+
+function getTechTheme(techRaw) {
+  const tech = normalize(techRaw);
+  if (!techRaw) return "neutral";
+  if (tech.includes("APPROV")) return "success";
+  if (tech.includes("REJECT")) return "danger";
+  if (tech.includes("IN REPAIR")) return "info";
+  if (tech.includes("PENDING")) return "warning";
+  return "neutral";
+}
+
+function ThemeBadge({ theme = "neutral", children, variant = "solid", title }) {
+  const cls =
+    theme === "success"
+      ? variant === "solid"
+        ? style.badgeSuccess
+        : style.badgeSoftSuccess
+      : theme === "danger"
+      ? variant === "solid"
+        ? style.badgeDanger
+        : style.badgeSoftDanger
+      : theme === "info"
+      ? variant === "solid"
+        ? style.badgeInfo
+        : style.badgeSoftInfo
+      : theme === "warning"
+      ? variant === "solid"
+        ? style.badgeWarning
+        : style.badgeSoftWarning
+      : variant === "solid"
+      ? style.badgeNeutral
+      : style.badgeSoftNeutral;
+
   return (
-    <div className={style.timeline}>
+    <span className={`${style.badge} ${cls}`} title={title}>
+      {children}
+    </span>
+  );
+}
+
+function StatusBadge({ ticket }) {
+  const statusRaw = ticket?.status;
+  const techRaw = ticket?.technical_status;
+
+  const statusText = prettyStatus(statusRaw);
+  const techText = prettyStatus(techRaw);
+
+  const mainTheme = getThemeFromTicket(ticket);
+
+  // δείξε τεχνικό badge μόνο αν υπάρχει ΚΑΙ δεν είναι ίδιο με status
+  const showTech = Boolean(techRaw) && normalize(techRaw) !== normalize(statusRaw);
+
+  return (
+    <div className={style.badgeGroup}>
+      <ThemeBadge
+        theme={mainTheme}
+        variant="solid"
+        title="Customer request status (what stage your request is in)"
+      >
+        {statusText}
+      </ThemeBadge>
+
+      {showTech && (
+        <ThemeBadge
+          theme={getTechTheme(techRaw)}
+          variant="soft"
+          title="Technical status (internal review / technician update)"
+        >
+          {techText}
+        </ThemeBadge>
+      )}
+    </div>
+  );
+}
+
+function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
+  const ACCENT = {
+    warning: "#f59e0b", // Pending
+    info: "#1565c0",    // In Repair
+    success: "#2e7d32", // Completed
+    danger: "#c62828",  // Rejected
+    neutral: "#9ca3af",
+  };
+
+  const accent = ACCENT[theme] || ACCENT.neutral;
+
+  return (
+    <div className={style.timeline} style={{ "--accent": accent }}>
       <div className={style.timelineTop}>
         {STEPS.map((s, i) => (
           <div key={s} className={style.topItem}>
             <div
               className={`${style.circle} ${i <= currentIndex ? style.circleActive : ""}`}
-              aria-label={s}
               title={s}
             >
               {i <= currentIndex ? "✓" : ""}
@@ -61,7 +173,8 @@ function ProgressBar({ currentIndex = 0 }) {
             {i < STEPS.length - 1 && (
               <div
                 className={`${style.connector} ${
-                  i < currentIndex ? style.connectorActive : ""
+                  /* ✅ για να φαίνεται χρώμα και στο Pending */
+                  i <= currentIndex ? style.connectorActive : ""
                 }`}
               />
             )}
@@ -83,315 +196,353 @@ function ProgressBar({ currentIndex = 0 }) {
   );
 }
 
-function RequestDetails({ request }) {
-  if (!request) return null;
 
-  const updates = request?.updates?.length ? request.updates : [];
+function TicketDetails({ ticket }) {
+  if (!ticket) return null;
+
+  const theme = getThemeFromTicket(ticket);
+  const stepIndex = getStepIndexFromTicket(ticket);
+
+  const customerName = ticket.customer?.name || "-";
+  const productName = ticket.product?.name || "-";
 
   return (
-    <div className={style.resultCard}>
+    <div className={style.resultCard} data-theme={theme}>
       <div className={style.resultHeader}>
         <div>
           <h2 className={style.resultTitle}>RMA Status</h2>
           <p className={style.resultSub}>
-            RMA: <b>{request.rma}</b>
+            RMA: <span className={style.emph}>{ticket.rma}</span>
           </p>
         </div>
 
-        <span className={style.badge}>{request.status}</span>
+        <StatusBadge ticket={ticket} />
       </div>
 
-      <ProgressBar currentIndex={getStepIndex(request)} />
+      <ProgressBar currentIndex={stepIndex} theme={theme} />
 
       <div className={style.detailsGrid}>
         <div className={style.field}>
-          <div className={style.fieldLabel}>Type</div>
-          <div className={style.fieldValue}>{request.type ?? "N/A"}</div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Created At</div>
-          <div className={style.fieldValue}>{formatDate(request.createdAt)}</div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Product</div>
-          <div className={style.fieldValue}>
-            {(request.product?.brand ?? "N/A") + " " + (request.product?.model ?? "")}
-          </div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Serial Number</div>
-          <div className={style.fieldValue}>{request.product?.serialNumber ?? "N/A"}</div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Purchase Date</div>
-          <div className={style.fieldValue}>
-            {request.purchaseDate ? formatDate(request.purchaseDate) : "N/A"}
-          </div>
-        </div>
-
-        <div className={style.field}>
-          <div className={style.fieldLabel}>Reason for Return</div>
-          <div className={style.fieldValue}>{request.reasonForReturn ?? "N/A"}</div>
-        </div>
-
-        <div className={style.field}>
           <div className={style.fieldLabel}>Customer</div>
-          <div className={style.fieldValue}>{request.customer?.fullName ?? "N/A"}</div>
+          <div className={style.fieldValue}>{customerName}</div>
         </div>
 
         <div className={style.field}>
           <div className={style.fieldLabel}>Email</div>
-          <div className={style.fieldValue}>{request.customer?.email ?? "N/A"}</div>
+          <div className={style.fieldValue}>{ticket.email || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Phone</div>
+          <div className={style.fieldValue}>{ticket.phone || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Purchase Date</div>
+          <div className={style.fieldValue}>{ticket.purchase_date || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Product</div>
+          <div className={style.fieldValue}>{productName}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Serial Number</div>
+          <div className={style.fieldValue}>{ticket.serial_number || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Assigned To</div>
+          <div className={style.fieldValue}>{ticket.assigned_to || ticket.assignedTo || "-"}</div>
+        </div>
+
+        <div className={style.field}>
+          <div className={style.fieldLabel}>Last Updated</div>
+          <div className={style.fieldValue}>
+            {formatDate(ticket.last_updated || ticket.created_at || ticket.date)}
+          </div>
         </div>
       </div>
 
       <div className={style.block}>
-        <div className={style.blockLabel}>Issue Description</div>
-        <div className={style.blockValue}>{request.issueDescription ?? "N/A"}</div>
+        <div className={style.blockLabel}>Issue</div>
+        <div className={style.blockValue}>{ticket.issue || "-"}</div>
       </div>
 
       <div className={style.block}>
-        <div className={style.blockLabel}>Updates</div>
-
-        {updates.length === 0 ? (
-          <div className={style.blockValueMuted}>No updates available.</div>
-        ) : (
-          <ul className={style.updatesList}>
-            {updates.map((u, idx) => (
-              <li key={`${u.date}-${idx}`} className={style.updateItem}>
-                <div className={style.updateTop}>
-                  <span className={style.updateStatus}>{u.status}</span>
-                  <span className={style.updateDate}>{formatDate(u.date)}</span>
-                </div>
-                <div className={style.updateMsg}>{u.message}</div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className={style.blockLabel}>Notes</div>
+        <div className={style.blockValue}>{ticket.notes || "-"}</div>
       </div>
     </div>
   );
 }
 
-function parseRmaNumber(rma) {
-  const m = String(rma || "").match(/(\d+)/);
-  return m ? Number(m[1]) : 0;
+function guessUserIdentity() {
+  const pick = (k) => {
+    const v = localStorage.getItem(k);
+    return v && String(v).trim() ? String(v).trim() : null;
+  };
+
+  const email =
+    pick("userEmail") || pick("customerEmail") || pick("email") || pick("loggedInEmail") || null;
+
+  const name = pick("customerName") || pick("userName") || pick("username") || null;
+
+  return { email, name };
 }
 
-function createNextRma(existingRequests) {
-  const maxNum = (existingRequests || []).reduce((max, r) => {
-    const n = parseRmaNumber(r?.rma);
-    return n > max ? n : max;
-  }, 0);
+function pickProfileTicket(list) {
+  if (!list?.length) return null;
 
-  const next = maxNum + 1;
-  return `RMA-${String(next).padStart(5, "0")}`;
-}
+  const score = (t) => {
+    const fields = [
+      t?.customer?.name,
+      t?.email,
+      t?.phone,
+      t?.address,
+      t?.owner,
+      t?.purchase_date,
+      t?.serial_number,
+    ];
+    const filled = fields.reduce((acc, v) => (v && String(v).trim() ? acc + 1 : acc), 0);
+    return filled;
+  };
 
-function loadInitialRequests() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch {
-    // ignore
-  }
-  return Array.isArray(requestsData) ? requestsData : [];
+  const sorted = [...list].sort((a, b) => {
+    const sa = score(a);
+    const sb = score(b);
+    if (sb !== sa) return sb - sa; // πιο “γεμάτο” πρώτο
+    return getTicketUpdatedAtMs(b) - getTicketUpdatedAtMs(a); // μετά πιο πρόσφατο
+  });
+
+  return sorted[0];
 }
 
 export default function CustomerViewRequestApp() {
-  const [requests, setRequests] = useState(() => loadInitialRequests());
+  // Default tab: Profile (όπως ζήτησες)
+  const [tab, setTab] = useState("profile"); // "profile" | "new" | "track" | "list"
 
-  // persist in localStorage (mock "database")
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-    } catch {
-      // ignore
-    }
-  }, [requests]);
-
-  const [tab, setTab] = useState("track"); // "list" | "new" | "track"
+  const [tickets, setTickets] = useState([]);
+  const ticketsMemo = useMemo(() => tickets || [], [tickets]);
 
   // Track RMA
   const [rma, setRma] = useState("");
   const [loading, setLoading] = useState(false);
-  const [trackErrorMsg, setTrackErrorMsg] = useState("");
-  const [trackInfoMsg, setTrackInfoMsg] = useState("");
-  const [request, setRequest] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [infoMsg, setInfoMsg] = useState("");
+  const [ticket, setTicket] = useState(null);
 
-  // New Return Request (mock)
-  const [newErrorMsg, setNewErrorMsg] = useState("");
-  const [newInfoMsg, setNewInfoMsg] = useState("");
-  const [newForm, setNewForm] = useState({
-    productName: "",
-    productModel: "",
-    serialNumber: "",
-    purchaseDate: "",
-    reasonForReturn: "",
-    issueDescription: "",
+  // Notifications dropdown (ΜΕΝΕΙ όπως ήταν: dropdown)
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifWrapRef = useRef(null);
+
+  // Profile UI-only edit (δεν πειράζει json)
+  const [profileOverride, setProfileOverride] = useState(null);
+  const [profileEditing, setProfileEditing] = useState(false);
+  const [profileDraft, setProfileDraft] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
   });
 
-  const clearTrackMessages = () => {
-    setTrackErrorMsg("");
-    setTrackInfoMsg("");
+  const clearMessages = () => {
+    setErrorMsg("");
+    setInfoMsg("");
   };
 
-  const clearNewMessages = () => {
-    setNewErrorMsg("");
-    setNewInfoMsg("");
-  };
+  async function loadTickets() {
+    const res = await fetch(`${API_BASE}/tickets`);
+    if (!res.ok) throw new Error("Failed to load tickets");
+    const data = await res.json();
+    const arr = Array.isArray(data) ? data : [];
+    setTickets(arr);
+    return arr;
+  }
 
-  const handleSearch = (e) => {
+  useEffect(() => {
+    (async () => {
+      try {
+        await loadTickets();
+      } catch {
+        // no spam
+      }
+    })();
+  }, []);
+
+  // close dropdown when clicking outside
+  useEffect(() => {
+    function onDocDown(e) {
+      if (!notifWrapRef.current) return;
+      if (!notifWrapRef.current.contains(e.target)) setNotifOpen(false);
+    }
+    document.addEventListener("mousedown", onDocDown);
+    return () => document.removeEventListener("mousedown", onDocDown);
+  }, []);
+
+  // My tickets (demo filter)
+  const myTickets = useMemo(() => {
+    const { email, name } = guessUserIdentity();
+    if (!ticketsMemo.length) return [];
+
+    let filtered = ticketsMemo;
+
+    if (email) {
+      filtered = ticketsMemo.filter((t) => normalize(t.email) === normalize(email));
+    } else if (name) {
+      filtered = ticketsMemo.filter((t) => normalize(t.customer?.name) === normalize(name));
+    }
+
+    return filtered.length ? filtered : ticketsMemo;
+  }, [ticketsMemo]);
+
+  // Ταξινόμηση: open πρώτα, μετά newest
+  const sortedMyTickets = useMemo(() => {
+    const rank = (t) => {
+      const theme = getThemeFromTicket(t);
+      if (theme === "warning") return 1; // pending
+      if (theme === "info") return 2; // in repair
+      if (theme === "success") return 3; // completed
+      if (theme === "danger") return 4; // rejected
+      return 5;
+    };
+
+    return [...myTickets].sort((a, b) => {
+      const ra = rank(a);
+      const rb = rank(b);
+      if (ra !== rb) return ra - rb;
+      return getTicketUpdatedAtMs(b) - getTicketUpdatedAtMs(a);
+    });
+  }, [myTickets]);
+
+  // Notifications dropdown data (από myTickets)
+  const notifications = useMemo(() => {
+    const sorted = [...myTickets].sort((a, b) => getTicketUpdatedAtMs(b) - getTicketUpdatedAtMs(a));
+    return sorted.map((t) => ({
+      id: t.id,
+      rma: t.rma,
+      when: formatDate(t.last_updated || t.created_at || t.date),
+      statusText: prettyStatus(t.status),
+      techText:
+        t.technical_status && normalize(t.technical_status) !== normalize(t.status)
+          ? prettyStatus(t.technical_status)
+          : "",
+      ticket: t,
+      theme: getThemeFromTicket(t),
+    }));
+  }, [myTickets]);
+
+  // Profile: παίρνει ticket με τα ΠΙΟ πολλά στοιχεία (όπως ζήτησες)
+  const derivedProfile = useMemo(() => {
+    const t = pickProfileTicket(myTickets);
+    if (!t) {
+      return {
+        name: "-",
+        email: "-",
+        phone: "-",
+        address: "-",
+        total: 0,
+        open: 0,
+        lastUpdate: "-",
+      };
+    }
+
+    const total = myTickets.length;
+    const open = myTickets.filter((x) => {
+      const th = getThemeFromTicket(x);
+      return th !== "success" && th !== "danger";
+    }).length;
+
+    return {
+      name: t.customer?.name || t.owner || "-",
+      email: t.email || "-",
+      phone: t.phone || "-",
+      address: t.address || "-",
+      total,
+      open,
+      lastUpdate: formatDate(t.last_updated || t.created_at || t.date),
+    };
+  }, [myTickets]);
+
+  const profile = profileOverride || derivedProfile;
+
+  // όταν ανοίγει profile, γέμισε draft
+  useEffect(() => {
+    if (tab !== "profile") return;
+    setProfileDraft({
+      name: profile.name === "-" ? "" : profile.name,
+      email: profile.email === "-" ? "" : profile.email,
+      phone: profile.phone === "-" ? "" : profile.phone,
+      address: profile.address === "-" ? "" : profile.address,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
+  const handleSearch = async (e) => {
     e.preventDefault();
+    const query = normalize(rma);
 
-    const query = normalizeRma(rma);
-    clearTrackMessages();
-    setRequest(null);
+    clearMessages();
+    setTicket(null);
 
     if (!query) {
-      setTrackErrorMsg("Please enter an RMA number.");
+      setErrorMsg("Please enter an RMA number.");
       return;
     }
 
     setLoading(true);
 
-    setTimeout(() => {
-      const found = requests.find((x) => normalizeRma(x.rma) === query);
-
-      if (!found) {
-        setTrackErrorMsg("No request found for this RMA number.");
-      } else {
-        setRequest(found);
-        setTrackInfoMsg("Request loaded successfully.");
+    try {
+      const res = await fetch(`${API_BASE}/tickets?rma=${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const arr = await res.json();
+        const found = Array.isArray(arr) && arr.length ? arr[0] : null;
+        if (found) {
+          setTicket(found);
+          setInfoMsg("Ticket loaded successfully.");
+          return;
+        }
       }
 
+      const foundLocal = myTickets.find((x) => normalize(x.rma) === query);
+      if (!foundLocal) setErrorMsg("No ticket found for this RMA number.");
+      else {
+        setTicket(foundLocal);
+        setInfoMsg("Ticket loaded successfully.");
+      }
+    } catch {
+      setErrorMsg("Could not connect to server. Is json-server running on :4000?");
+    } finally {
       setLoading(false);
-    }, 200);
+    }
   };
 
   const handleClear = () => {
     setRma("");
     setLoading(false);
-    clearTrackMessages();
-    setRequest(null);
+    clearMessages();
+    setTicket(null);
   };
 
-  const openTrack = () => {
+  const openProfile = () => setTab("profile");
+  const openNew = () => setTab("new");
+  const openTrack = () => setTab("track");
+  const openList = () => setTab("list");
+
+  const handlePickTicket = (t) => {
+    setNotifOpen(false);
+    setTicket(t);
+    setRma(t.rma);
+    clearMessages();
+    setInfoMsg("Ticket loaded successfully.");
     setTab("track");
-    clearNewMessages();
   };
 
-  const openList = () => {
+  // View all στο dropdown -> ΠΑΕΙ View My Requests (χωρίς extra μπάρα / σελίδα)
+  const handleViewAllNotifications = () => {
+    setNotifOpen(false);
     setTab("list");
-    clearTrackMessages();
-    clearNewMessages();
-  };
-
-  const openNew = () => {
-    setTab("new");
-    clearTrackMessages();
-    clearNewMessages();
-  };
-
-  const handlePickFromList = (req) => {
-    setRequest(req);
-    setRma(req.rma);
-    clearTrackMessages();
-    setTrackInfoMsg("Request loaded successfully.");
-    setTab("track");
-  };
-
-  const isNewFormValid = useMemo(() => {
-    return (
-      newForm.productName.trim() &&
-      newForm.productModel.trim() &&
-      newForm.serialNumber.trim() &&
-      newForm.purchaseDate.trim() &&
-      newForm.reasonForReturn.trim() &&
-      newForm.issueDescription.trim()
-    );
-  }, [newForm]);
-
-  const resetNewForm = () => {
-    setNewForm({
-      productName: "",
-      productModel: "",
-      serialNumber: "",
-      purchaseDate: "",
-      reasonForReturn: "",
-      issueDescription: "",
-    });
-  };
-
-  const handleNewSubmit = (e) => {
-    e.preventDefault();
-    clearNewMessages();
-
-    if (!isNewFormValid) {
-      setNewErrorMsg("Please fill in all required fields.");
-      return;
-    }
-
-    const newRma = createNextRma(requests);
-    const nowIso = new Date().toISOString();
-
-    const newReq = {
-      rma: newRma,
-      type: "Return",
-      status: "Submitted",
-      createdAt: nowIso,
-
-      // optional (we don't require login)
-      customer: {
-        fullName: "Guest",
-        email: "",
-      },
-
-      // mapping to existing schema (brand+model used in cards)
-      product: {
-        category: "Product",
-        brand: newForm.productName.trim(),
-        model: newForm.productModel.trim(),
-        serialNumber: newForm.serialNumber.trim(),
-      },
-
-      purchaseDate: newForm.purchaseDate, // ISO (from input type="date")
-      reasonForReturn: newForm.reasonForReturn,
-      issueDescription: newForm.issueDescription.trim(),
-
-      updates: [
-        {
-          date: nowIso,
-          status: "Submitted",
-          message: "Request submitted successfully.",
-        },
-      ],
-    };
-
-    setRequests((prev) => [newReq, ...prev]);
-
-    // UX: jump to Track and show status immediately
-    setRequest(newReq);
-    setRma(newReq.rma);
-    setTab("track");
-
-    clearTrackMessages();
-    setTrackInfoMsg(`Request submitted successfully. Your RMA is ${newReq.rma}.`);
-
-    resetNewForm();
-  };
-
-  const handleCancelNew = () => {
-    resetNewForm();
-    clearNewMessages();
-    setNewInfoMsg("Form cleared.");
   };
 
   return (
@@ -399,24 +550,16 @@ export default function CustomerViewRequestApp() {
       <header className={style.portalHeader}>
         <div>
           <h1 className={style.portalTitle}>Customer Portal</h1>
-          <p className={style.portalSubtitle}>Track the progress of your return requests</p>
+          <p className={style.portalSubtitle}>Track the progress of your requests</p>
         </div>
 
         <div className={style.portalActions}>
-          <button
-            className={`${style.tabBtn} ${tab === "list" ? style.tabBtnActive : ""}`}
-            onClick={openList}
-            type="button"
-          >
-            View My Returns
-          </button>
-
           <button
             className={`${style.tabBtn} ${tab === "new" ? style.tabBtnActive : ""}`}
             onClick={openNew}
             type="button"
           >
-            New Return Request
+            New Request
           </button>
 
           <button
@@ -426,13 +569,239 @@ export default function CustomerViewRequestApp() {
           >
             Track RMA
           </button>
+
+          <button
+            className={`${style.tabBtn} ${tab === "list" ? style.tabBtnActive : ""}`}
+            onClick={openList}
+            type="button"
+          >
+            View My Requests
+          </button>
+
+          {/* 4o κουμπί: icon-only */}
+          <button
+            className={`${style.iconBtn} ${tab === "profile" ? style.iconBtnActive : ""}`}
+            onClick={openProfile}
+            type="button"
+            title="My Profile"
+            aria-label="My Profile"
+          >
+            <span className={style.icon} aria-hidden="true">
+              👤
+            </span>
+          </button>
+
+          {/* Notifications dropdown (ΜΟΝΟ dropdown) */}
+          <div className={style.notifWrap} ref={notifWrapRef}>
+            <button
+              className={`${style.notifBtn} ${notifOpen ? style.tabBtnActive : ""}`}
+              onClick={() => setNotifOpen((p) => !p)}
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={notifOpen ? "true" : "false"}
+              title="Notifications"
+            >
+              <span className={style.icon} aria-hidden="true">
+                🔔
+              </span>{" "}
+              Notifications
+            </button>
+
+            {notifOpen && (
+              <div className={style.dropdown} role="menu">
+                {notifications.length === 0 ? (
+                  <div className={style.dropdownEmpty}>No notifications yet.</div>
+                ) : (
+                  <>
+                    {notifications.slice(0, 4).map((n) => {
+                      const dotCls =
+                        n.theme === "success"
+                          ? style.dropdownDotSuccess
+                          : n.theme === "danger"
+                          ? style.dropdownDotDanger
+                          : n.theme === "info"
+                          ? style.dropdownDotInfo
+                          : n.theme === "warning"
+                          ? style.dropdownDotWarning
+                          : style.dropdownDotNeutral;
+
+                      return (
+                        <button
+                          key={n.id ?? n.rma}
+                          className={style.dropdownItem}
+                          type="button"
+                          onClick={() => handlePickTicket(n.ticket)}
+                          role="menuitem"
+                        >
+                          <span className={`${style.dropdownDot} ${dotCls}`} aria-hidden="true" />
+                          <span className={style.dropdownMain}>
+                            <span className={style.dropdownTitle}>{n.rma}</span>
+                            <span className={style.dropdownSub}>
+                              {n.statusText}
+                              {n.techText ? ` • ${n.techText}` : ""}
+                            </span>
+                          </span>
+                          <span className={style.dropdownWhen}>{n.when}</span>
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      className={style.dropdownViewAll}
+                      type="button"
+                      onClick={handleViewAllNotifications}
+                      role="menuitem"
+                    >
+                      View all →
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
+      {/* PROFILE */}
+      {tab === "profile" && (
+        <div className={style.profileWrap}>
+          <div className={style.profileHeaderRow}>
+            <h2 className={style.sectionTitle}>My Profile</h2>
+
+            {!profileEditing ? (
+              <button
+                type="button"
+                className={style.profileBtn}
+                onClick={() => setProfileEditing(true)}
+              >
+                Edit
+              </button>
+            ) : (
+              <div className={style.profileActions}>
+                <button
+                  type="button"
+                  className={style.profileBtnPrimary}
+                  onClick={() => {
+                    setProfileOverride((prev) => ({
+                      ...(prev || profile),
+                      name: profileDraft.name || "-",
+                      email: profileDraft.email || "-",
+                      phone: profileDraft.phone || "-",
+                      address: profileDraft.address || "-",
+                    }));
+                    setProfileEditing(false);
+                  }}
+                >
+                  Save
+                </button>
+
+                <button
+                  type="button"
+                  className={style.profileBtnGhost}
+                  onClick={() => {
+                    setProfileEditing(false);
+                    setProfileDraft({
+                      name: profile.name === "-" ? "" : profile.name,
+                      email: profile.email === "-" ? "" : profile.email,
+                      phone: profile.phone === "-" ? "" : profile.phone,
+                      address: profile.address === "-" ? "" : profile.address,
+                    });
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className={style.profileGrid}>
+            <div className={style.profileCard}>
+              <div className={style.profileLabel}>Name</div>
+              {!profileEditing ? (
+                <div className={style.profileValue}>{profile.name}</div>
+              ) : (
+                <input
+                  className={style.profileInput}
+                  value={profileDraft.name}
+                  onChange={(e) => setProfileDraft((p) => ({ ...p, name: e.target.value }))}
+                  placeholder="Name"
+                />
+              )}
+            </div>
+
+            <div className={style.profileCard}>
+              <div className={style.profileLabel}>Email</div>
+              {!profileEditing ? (
+                <div className={style.profileValue}>{profile.email}</div>
+              ) : (
+                <input
+                  className={style.profileInput}
+                  value={profileDraft.email}
+                  onChange={(e) => setProfileDraft((p) => ({ ...p, email: e.target.value }))}
+                  placeholder="Email"
+                />
+              )}
+            </div>
+
+            <div className={style.profileCard}>
+              <div className={style.profileLabel}>Phone</div>
+              {!profileEditing ? (
+                <div className={style.profileValue}>{profile.phone}</div>
+              ) : (
+                <input
+                  className={style.profileInput}
+                  value={profileDraft.phone}
+                  onChange={(e) => setProfileDraft((p) => ({ ...p, phone: e.target.value }))}
+                  placeholder="Phone"
+                />
+              )}
+            </div>
+
+            <div className={style.profileCard}>
+              <div className={style.profileLabel}>Address</div>
+              {!profileEditing ? (
+                <div className={style.profileValue}>{profile.address}</div>
+              ) : (
+                <input
+                  className={style.profileInput}
+                  value={profileDraft.address}
+                  onChange={(e) => setProfileDraft((p) => ({ ...p, address: e.target.value }))}
+                  placeholder="Address"
+                />
+              )}
+            </div>
+
+            <div className={style.profileCard}>
+              <div className={style.profileLabel}>Total requests</div>
+              <div className={style.profileValue}>{profile.total}</div>
+            </div>
+
+            <div className={style.profileCard}>
+              <div className={style.profileLabel}>Open requests</div>
+              <div className={style.profileValue}>{profile.open}</div>
+            </div>
+
+            <div className={style.profileCardWide}>
+              <div className={style.profileLabel}>Last update</div>
+              <div className={style.profileValue}>{profile.lastUpdate}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NEW */}
+      {tab === "new" && (
+        <div className={style.newWrap}>
+          <h2 className={style.sectionTitle}>New Request</h2>
+          <CustomerFormApp />
+        </div>
+      )}
+
+      {/* TRACK */}
       {tab === "track" && (
         <>
           <div className={style.searchCard}>
-            <h2 className={style.sectionTitle}>View Request</h2>
+            <h2 className={style.sectionTitle}>Track your RMA</h2>
 
             <form className={style.form} onSubmit={handleSearch}>
               <label className={style.label}>
@@ -440,7 +809,7 @@ export default function CustomerViewRequestApp() {
                 <input
                   className={style.input}
                   type="text"
-                  placeholder="e.g. RMA-10001"
+                  placeholder="e.g. RMA-002"
                   value={rma}
                   onChange={(e) => setRma(e.target.value)}
                   disabled={loading}
@@ -458,142 +827,91 @@ export default function CustomerViewRequestApp() {
               </div>
             </form>
 
-            {trackErrorMsg && <div className={style.alertError}>{trackErrorMsg}</div>}
-            {trackInfoMsg && <div className={style.alertOk}>{trackInfoMsg}</div>}
+            {errorMsg && <div className={style.alertError}>{errorMsg}</div>}
+            {infoMsg && <div className={style.alertOk}>{infoMsg}</div>}
           </div>
 
-          <RequestDetails request={request} />
+          <TicketDetails ticket={ticket} />
         </>
       )}
 
+      {/* LIST */}
       {tab === "list" && (
         <div className={style.listWrap}>
-          <h2 className={style.sectionTitle}>My RMA Requests</h2>
+          <div className={style.listHeaderRow}>
+            <h2 className={style.sectionTitle}>My Requests</h2>
+            <button
+              type="button"
+              className={style.secondaryBtn}
+              onClick={async () => {
+                clearMessages();
+                try {
+                  setLoading(true);
+                  await loadTickets();
+                  setInfoMsg("Tickets refreshed.");
+                } catch {
+                  setErrorMsg("Could not refresh tickets.");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              Refresh
+            </button>
+          </div>
+
+          {errorMsg && <div className={style.alertError}>{errorMsg}</div>}
+          {infoMsg && <div className={style.alertOk}>{infoMsg}</div>}
 
           <div className={style.cardsGrid}>
-            {requests.map((req) => (
-              <button
-                key={req.rma}
-                type="button"
-                className={style.requestCard}
-                onClick={() => handlePickFromList(req)}
-              >
-                <div className={style.cardTop}>
-                  <div className={style.cardTitle}>
-                    {req.product?.brand} {req.product?.model}
-                  </div>
-                  <span className={style.badgeSmall}>{req.status}</span>
-                </div>
+            {sortedMyTickets.map((t) => {
+              const theme = getThemeFromTicket(t);
 
-                <div className={style.cardMeta}>
-                  <div>
-                    <span className={style.metaLabel}>RMA ID:</span> {req.rma}
-                  </div>
-                  <div>
-                    <span className={style.metaLabel}>Submitted:</span> {formatDate(req.createdAt)}
-                  </div>
-                </div>
-
-                <div className={style.cardIssue}>
-                  <span className={style.metaLabel}>Issue:</span> {req.issueDescription}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {tab === "new" && (
-        <div className={style.newWrap}>
-          <h2 className={style.sectionTitle}>New Return Request</h2>
-          <p className={style.sectionSubtitle}>Fill out the form below to submit a return request</p>
-
-          <form className={style.newForm} onSubmit={handleNewSubmit}>
-            <div className={style.newGrid}>
-              <label className={style.label}>
-                Product Name <span aria-hidden="true">*</span>
-                <input
-                  className={style.input}
-                  placeholder="e.g., LED Smart TV"
-                  value={newForm.productName}
-                  onChange={(e) => setNewForm((p) => ({ ...p, productName: e.target.value }))}
-                />
-              </label>
-
-              <label className={style.label}>
-                Product Model <span aria-hidden="true">*</span>
-                <input
-                  className={style.input}
-                  placeholder="e.g., SMT-5500X"
-                  value={newForm.productModel}
-                  onChange={(e) => setNewForm((p) => ({ ...p, productModel: e.target.value }))}
-                />
-              </label>
-
-              <label className={style.label}>
-                Serial Number <span aria-hidden="true">*</span>
-                <input
-                  className={style.input}
-                  placeholder="e.g., SN123456789"
-                  value={newForm.serialNumber}
-                  onChange={(e) => setNewForm((p) => ({ ...p, serialNumber: e.target.value }))}
-                />
-              </label>
-
-              <label className={style.label}>
-                Purchase Date <span aria-hidden="true">*</span>
-                <input
-                  className={style.input}
-                  type="date"
-                  value={newForm.purchaseDate}
-                  onChange={(e) => setNewForm((p) => ({ ...p, purchaseDate: e.target.value }))}
-                />
-              </label>
-
-              <label className={style.label}>
-                Reason for Return <span aria-hidden="true">*</span>
-                <select
-                  className={style.input}
-                  value={newForm.reasonForReturn}
-                  onChange={(e) =>
-                    setNewForm((p) => ({ ...p, reasonForReturn: e.target.value }))
-                  }
+              return (
+                <button
+                  key={t.id || t.rma}
+                  type="button"
+                  className={style.requestCard}
+                  data-theme={theme}
+                  onClick={() => handlePickTicket(t)}
                 >
-                  <option value="">Select a reason</option>
-                  <option value="Defective product">Defective product</option>
-                  <option value="Wrong item received">Wrong item received</option>
-                  <option value="Damaged on arrival">Damaged on arrival</option>
-                  <option value="Performance issues">Performance issues</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
+                  <div className={style.cardTop}>
+                    {/* category = product name -> ΓΚΡΙ (όπως ζήτησες) */}
+                    <div className={style.cardTitle}>{t.product?.name || "Product"}</div>
 
-              <label className={style.label}>
-                Issue Description <span aria-hidden="true">*</span>
-                <textarea
-                  className={style.input}
-                  rows={3}
-                  placeholder="Please describe the issue in detail..."
-                  value={newForm.issueDescription}
-                  onChange={(e) =>
-                    setNewForm((p) => ({ ...p, issueDescription: e.target.value }))
-                  }
-                />
-              </label>
-            </div>
+                    <div className={style.badgeGroup}>
+                      <ThemeBadge theme={theme} variant="solid" title="Customer request status (what stage your request is in)">
+                        {prettyStatus(t.status)}
+                      </ThemeBadge>
 
-            <div className={style.actions}>
-              <button className={style.primaryBtn} type="submit">
-                Submit Request
-              </button>
-              <button className={style.secondaryBtn} type="button" onClick={handleCancelNew}>
-                Cancel
-              </button>
-            </div>
+                      {t.technical_status && normalize(t.status) !== normalize(t.technical_status) && (
+                        <ThemeBadge
+                          theme={getTechTheme(t.technical_status)}
+                          variant="soft"
+                          title="Technical status (internal review / technician update)"
+                        >
+                          {prettyStatus(t.technical_status)}
+                        </ThemeBadge>
+                      )}
+                    </div>
+                  </div>
 
-            {newErrorMsg && <div className={style.alertError}>{newErrorMsg}</div>}
-            {newInfoMsg && <div className={style.alertOk}>{newInfoMsg}</div>}
-          </form>
+                  <div className={style.cardMeta}>
+                    <div>
+                      <span className={style.metaLabel}>RMA:</span> {t.rma}
+                    </div>
+                    <div>
+                      <span className={style.metaLabel}>Customer:</span> {t.customer?.name || "-"}
+                    </div>
+                  </div>
+
+                  <div className={style.cardIssue}>
+                    <span className={style.metaLabel}>Issue:</span> {t.issue || "-"}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

@@ -39,6 +39,11 @@ const REQUIRED_FIELDS = [
 ];
 
 /* Βοηθητικές συναρτησεις */
+import { createTicket } from '../../services/employeeTickets';
+
+const CATEGORIES = ["Laptop", "Smartphone", "TV", "Home Appliance", "Accessory", "Other"];
+const STORES = ["Thessaloniki", "Athens", "Larisa", "Patra", "Heraklion"];
+const DEFAULT_PRIORITY = 'Low';
 
 function twoYearsAgo() {
   let today = new Date();
@@ -108,7 +113,17 @@ function checkReturn(purchaseDateStr) {
 
 function RmaCode() {
   let year = new Date().getFullYear();
-  let id = crypto.randomUUID();
+
+  let id;
+  if (crypto.randomUUID) {
+    id = crypto.randomUUID();
+  } else {
+    // fallback for HTTP or older browsers
+    id = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
+  }
+
   let shortId = id.slice(0, 8).toUpperCase();
   return "RMA-" + year + "-" + shortId;
 }
@@ -410,11 +425,41 @@ export default function CreateForm() {
       customerName: data.name + " " + data.surname,
       requestType: data.requestType,
     });
+    const ticketData = {
+      rma: rmaCode,
+      customer: { name: `${data.name} ${data.surname}` },
+      product: { name: data.productCode },
+      status: 'pending',
+      record_type: data.requestType.toLowerCase(),
+      issue: data.issueDescription,
+      warranty: warrantyStatus,
+      phone: data.phoneNumber,
+      email: data.email,
+      priority: DEFAULT_PRIORITY
+    };
 
-    setSubmitting(false);
-    setUploadFailed(false);
-    setMessage({ type: "success", text: "Your RMA request has been submitted successfully." });
+    await handleSubmit(ticketData, trackingUrl, uploadUrl);
   }
+
+  const handleSubmit = async (ticketData, trackingUrl, uploadUrl) => {
+      try {
+        const response = await createTicket(ticketData);
+        setMessage({ type: "success", text: "Your RMA request has been submitted successfully." });
+        setResult({
+          rmaCode: ticketData.rma,
+          trackingUrl: trackingUrl,
+          warrantyStatus: ticketData.warranty,
+          uploadUrl: uploadUrl,
+          customerName: ticketData.customer.name,
+        });
+      } catch (error) {
+        setMessage({ type: "error", text: error.message || "Failed to submit RMA request." });
+      }
+      finally{
+        setSubmitting(false);
+        setUploadFailed(false);
+      }
+    };
 
   function reset() {
     setData({
