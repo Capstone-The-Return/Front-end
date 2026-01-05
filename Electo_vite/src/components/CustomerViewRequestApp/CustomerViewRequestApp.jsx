@@ -4,8 +4,16 @@ import CustomerFormApp from "../../components/CustomerFormApp/CustomerFormApp.js
 
 const API_BASE = "http://localhost:4000";
 
+/*
+  Μικρή βοήθεια:
+  normalize() = κάνει ένα string "καθαρό" για σύγκριση (trim + uppercase)
+*/
 const normalize = (v) => (v || "").trim().toUpperCase();
 
+/*
+  Μετατρέπει status από db σε πιο ωραίο  για εμφάνιση.
+  Αν δεν ταιριάζει στο map, εμφανίζει το original.
+*/
 const prettyStatus = (raw) => {
   const s = (raw || "").trim();
   if (!s) return "-";
@@ -17,7 +25,6 @@ const prettyStatus = (raw) => {
     "IN REPAIR": "In Repair",
     COMPLETED: "Completed",
     CLOSED: "Closed",
-
     APPROVED: "Approved",
     REJECTED: "Rejected",
     REJECT: "Rejected",
@@ -25,6 +32,9 @@ const prettyStatus = (raw) => {
   return map[key] || s;
 };
 
+/*
+  Απλό format ημερομηνίας από ISO string.
+*/
 const formatDate = (iso) => {
   if (!iso) return "-";
   try {
@@ -34,6 +44,9 @@ const formatDate = (iso) => {
   }
 };
 
+/*
+  Τα βήματα που δείχνει το progress bar.
+*/
 const STEPS = ["Submitted", "Approved", "In Repair", "Completed"];
 
 function getTicketUpdatedAtMs(t) {
@@ -49,11 +62,23 @@ function getStepIndexFromTicket(t) {
   const status = normalize(t.status);
   const tech = normalize(t.technical_status);
 
-  if (status.includes("COMPLETED") || tech.includes("COMPLETED") || tech.includes("CLOSED")) return 3;
-  if (status.includes("IN-REPAIR") || status.includes("IN REPAIR") || tech.includes("IN REPAIR")) return 2;
+  if (
+    status.includes("COMPLETED") ||
+    tech.includes("COMPLETED") ||
+    tech.includes("CLOSED")
+  )
+    return 3;
+
+  if (
+    status.includes("IN-REPAIR") ||
+    status.includes("IN REPAIR") ||
+    tech.includes("IN REPAIR")
+  )
+    return 2;
+
   if (tech.includes("APPROVED")) return 1;
 
-  // Rejected: σταματάει στο step "Approved" αλλά με danger theme
+  // Rejected: σταματάει στο step "Approved" αλλά με "danger" theme
   if (tech.includes("REJECT")) return 1;
 
   return 0;
@@ -66,8 +91,18 @@ function getThemeFromTicket(t) {
   const tech = normalize(t.technical_status);
 
   if (tech.includes("REJECT")) return "danger";
-  if (status.includes("COMPLETED") || tech.includes("COMPLETED") || tech.includes("CLOSED")) return "success";
-  if (status.includes("IN-REPAIR") || status.includes("IN REPAIR") || tech.includes("IN REPAIR")) return "info";
+  if (
+    status.includes("COMPLETED") ||
+    tech.includes("COMPLETED") ||
+    tech.includes("CLOSED")
+  )
+    return "success";
+  if (
+    status.includes("IN-REPAIR") ||
+    status.includes("IN REPAIR") ||
+    tech.includes("IN REPAIR")
+  )
+    return "info";
   if (status.includes("PENDING") || tech.includes("PENDING")) return "warning";
 
   return "neutral";
@@ -150,9 +185,9 @@ function StatusBadge({ ticket }) {
 function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
   const ACCENT = {
     warning: "#f59e0b", // Pending
-    info: "#1565c0",    // In Repair
+    info: "#1565c0", // In Repair
     success: "#2e7d32", // Completed
-    danger: "#c62828",  // Rejected
+    danger: "#c62828", // Rejected
     neutral: "#9ca3af",
   };
 
@@ -164,7 +199,9 @@ function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
         {STEPS.map((s, i) => (
           <div key={s} className={style.topItem}>
             <div
-              className={`${style.circle} ${i <= currentIndex ? style.circleActive : ""}`}
+              className={`${style.circle} ${
+                i <= currentIndex ? style.circleActive : ""
+              }`}
               title={s}
             >
               {i <= currentIndex ? "✓" : ""}
@@ -173,7 +210,6 @@ function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
             {i < STEPS.length - 1 && (
               <div
                 className={`${style.connector} ${
-                  /* ✅ για να φαίνεται χρώμα και στο Pending */
                   i <= currentIndex ? style.connectorActive : ""
                 }`}
               />
@@ -186,7 +222,9 @@ function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
         {STEPS.map((s, i) => (
           <div
             key={s}
-            className={`${style.stepLabel} ${i <= currentIndex ? style.stepLabelActive : ""}`}
+            className={`${style.stepLabel} ${
+              i <= currentIndex ? style.stepLabelActive : ""
+            }`}
           >
             {s}
           </div>
@@ -195,7 +233,6 @@ function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
     </div>
   );
 }
-
 
 function TicketDetails({ ticket }) {
   if (!ticket) return null;
@@ -249,7 +286,9 @@ function TicketDetails({ ticket }) {
 
         <div className={style.field}>
           <div className={style.fieldLabel}>Assigned To</div>
-          <div className={style.fieldValue}>{ticket.assigned_to || ticket.assignedTo || "-"}</div>
+          <div className={style.fieldValue}>
+            {ticket.assigned_to || ticket.assignedTo || "-"}
+          </div>
         </div>
 
         <div className={style.field}>
@@ -273,6 +312,10 @@ function TicketDetails({ ticket }) {
   );
 }
 
+/*
+  Αυτό χρησιμοποιείται σαν fallback όταν ΔΕΝ υπάρχει userId στο localStorage.
+  Επειδή όμως τώρα θα δουλέψουμε με userId, το αφήνουμε ως "plan B".
+*/
 function guessUserIdentity() {
   const pick = (k) => {
     const v = localStorage.getItem(k);
@@ -280,13 +323,21 @@ function guessUserIdentity() {
   };
 
   const email =
-    pick("userEmail") || pick("customerEmail") || pick("email") || pick("loggedInEmail") || null;
+    pick("userEmail") ||
+    pick("customerEmail") ||
+    pick("email") ||
+    pick("loggedInEmail") ||
+    null;
 
   const name = pick("customerName") || pick("userName") || pick("username") || null;
 
   return { email, name };
 }
 
+/*
+  Παίρνει το ticket που έχει τα περισσότερα "profile" στοιχεία (name/email/phone/address κλπ)
+  ώστε να γεμίζει το tab Profile.
+*/
 function pickProfileTicket(list) {
   if (!list?.length) return null;
 
@@ -300,14 +351,17 @@ function pickProfileTicket(list) {
       t?.purchase_date,
       t?.serial_number,
     ];
-    const filled = fields.reduce((acc, v) => (v && String(v).trim() ? acc + 1 : acc), 0);
+    const filled = fields.reduce(
+      (acc, v) => (v && String(v).trim() ? acc + 1 : acc),
+      0
+    );
     return filled;
   };
 
   const sorted = [...list].sort((a, b) => {
     const sa = score(a);
     const sb = score(b);
-    if (sb !== sa) return sb - sa; // πιο “γεμάτο” πρώτο
+    if (sb !== sa) return sb - sa; // πιο γεμάτο πρώτο
     return getTicketUpdatedAtMs(b) - getTicketUpdatedAtMs(a); // μετά πιο πρόσφατο
   });
 
@@ -315,7 +369,7 @@ function pickProfileTicket(list) {
 }
 
 export default function CustomerViewRequestApp() {
-  // Default tab: Profile (όπως ζήτησες)
+  // Default tab: Profile
   const [tab, setTab] = useState("profile"); // "profile" | "new" | "track" | "list"
 
   const [tickets, setTickets] = useState([]);
@@ -328,7 +382,7 @@ export default function CustomerViewRequestApp() {
   const [infoMsg, setInfoMsg] = useState("");
   const [ticket, setTicket] = useState(null);
 
-  // Notifications dropdown (ΜΕΝΕΙ όπως ήταν: dropdown)
+  // Notifications dropdown
   const [notifOpen, setNotifOpen] = useState(false);
   const notifWrapRef = useRef(null);
 
@@ -341,6 +395,41 @@ export default function CustomerViewRequestApp() {
     phone: "",
     address: "",
   });
+
+  /*
+    ΝΕΟ: εδώ κρατάμε το ticketId που "ανήκει" στον logged-in customer.
+    Το ticketId θα είναι ένα string π.χ. "1"
+  */
+  const [allowedTicketId, setAllowedTicketId] = useState(null);
+
+  /*
+    ΝΕΟ: βρίσκουμε το logged-in user από localStorage
+    Περιμένουμε ότι στο login αποθηκεύτηκαν:
+    - userId
+    - userRole
+  */
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    const role = localStorage.getItem("userRole");
+
+    // Μας ενδιαφέρει μόνο ο customer
+    if (!userId || role !== "customer") {
+      setAllowedTicketId(null);
+      return;
+    }
+
+    // Φέρνουμε τον user από /users/:id για να πάρουμε το ticketId
+    fetch(`${API_BASE}/users/${userId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((user) => {
+        // Αν ο user έχει ticketId, το κρατάμε. Αλλιώς null.
+        const tid = user?.ticketId ? String(user.ticketId) : null;
+        setAllowedTicketId(tid);
+      })
+      .catch(() => {
+        setAllowedTicketId(null);
+      });
+  }, []);
 
   const clearMessages = () => {
     setErrorMsg("");
@@ -361,7 +450,7 @@ export default function CustomerViewRequestApp() {
       try {
         await loadTickets();
       } catch {
-        // no spam
+        // δεν κάνουμε spam errors
       }
     })();
   }, []);
@@ -376,30 +465,51 @@ export default function CustomerViewRequestApp() {
     return () => document.removeEventListener("mousedown", onDocDown);
   }, []);
 
-  // My tickets (demo filter)
+  /*
+    ΝΕΟ: allowedTicketsMemo
+    Εδώ κάνουμε το βασικό φιλτράρισμα:
+    - Αν υπάρχει allowedTicketId, κρατάμε ΜΟΝΟ το ticket με αυτό το id
+    - Αν δεν υπάρχει (π.χ. demo/guest), αφήνουμε τα tickets όπως είναι
+  */
+  const allowedTicketsMemo = useMemo(() => {
+    if (!allowedTicketId) return ticketsMemo;
+    return ticketsMemo.filter((t) => String(t.id) === String(allowedTicketId));
+  }, [ticketsMemo, allowedTicketId]);
+
+  /*
+    My tickets:
+    Πλέον δουλεύει πάνω στο allowedTicketsMemo.
+    Έτσι:
+    - αν είσαι customer με ticketId -> θα βγει 1 ticket
+    - αν δεν υπάρχει ticketId -> θα λειτουργεί όπως πριν (demo)
+  */
   const myTickets = useMemo(() => {
     const { email, name } = guessUserIdentity();
-    if (!ticketsMemo.length) return [];
+    if (!allowedTicketsMemo.length) return [];
 
-    let filtered = ticketsMemo;
+    let filtered = allowedTicketsMemo;
 
     if (email) {
-      filtered = ticketsMemo.filter((t) => normalize(t.email) === normalize(email));
+      filtered = allowedTicketsMemo.filter(
+        (t) => normalize(t.email) === normalize(email)
+      );
     } else if (name) {
-      filtered = ticketsMemo.filter((t) => normalize(t.customer?.name) === normalize(name));
+      filtered = allowedTicketsMemo.filter(
+        (t) => normalize(t.customer?.name) === normalize(name)
+      );
     }
 
-    return filtered.length ? filtered : ticketsMemo;
-  }, [ticketsMemo]);
+    return filtered.length ? filtered : allowedTicketsMemo;
+  }, [allowedTicketsMemo]);
 
   // Ταξινόμηση: open πρώτα, μετά newest
   const sortedMyTickets = useMemo(() => {
     const rank = (t) => {
       const theme = getThemeFromTicket(t);
-      if (theme === "warning") return 1; // pending
-      if (theme === "info") return 2; // in repair
-      if (theme === "success") return 3; // completed
-      if (theme === "danger") return 4; // rejected
+      if (theme === "warning") return 1;
+      if (theme === "info") return 2;
+      if (theme === "success") return 3;
+      if (theme === "danger") return 4;
       return 5;
     };
 
@@ -413,7 +523,9 @@ export default function CustomerViewRequestApp() {
 
   // Notifications dropdown data (από myTickets)
   const notifications = useMemo(() => {
-    const sorted = [...myTickets].sort((a, b) => getTicketUpdatedAtMs(b) - getTicketUpdatedAtMs(a));
+    const sorted = [...myTickets].sort(
+      (a, b) => getTicketUpdatedAtMs(b) - getTicketUpdatedAtMs(a)
+    );
     return sorted.map((t) => ({
       id: t.id,
       rma: t.rma,
@@ -428,7 +540,7 @@ export default function CustomerViewRequestApp() {
     }));
   }, [myTickets]);
 
-  // Profile: παίρνει ticket με τα ΠΙΟ πολλά στοιχεία (όπως ζήτησες)
+  // Profile: παίρνει ticket με τα πιο πολλά στοιχεία
   const derivedProfile = useMemo(() => {
     const t = pickProfileTicket(myTickets);
     if (!t) {
@@ -489,6 +601,26 @@ export default function CustomerViewRequestApp() {
     setLoading(true);
 
     try {
+      /*
+        Σημαντικό:
+        Αν υπάρχει allowedTicketId, δεν θέλουμε να επιτρέπεται να φορτώνει άλλο ticket από server.
+        Για αυτό, ελέγχουμε πρώτα το myTickets (που ήδη είναι 1 ticket).
+      */
+
+      const foundLocal = myTickets.find((x) => normalize(x.rma) === query);
+      if (foundLocal) {
+        setTicket(foundLocal);
+        setInfoMsg("Ticket loaded successfully.");
+        return;
+      }
+
+      // Αν δεν βρέθηκε μέσα στα "δικά μου", τότε δεν επιτρέπεται να δει άλλο.
+      if (allowedTicketId) {
+        setErrorMsg("No ticket found for this RMA number.");
+        return;
+      }
+
+      // Demo fallback: αν δεν έχουμε allowedTicketId, τότε κάνουμε fetch όπως πριν
       const res = await fetch(`${API_BASE}/tickets?rma=${encodeURIComponent(query)}`);
       if (res.ok) {
         const arr = await res.json();
@@ -500,12 +632,7 @@ export default function CustomerViewRequestApp() {
         }
       }
 
-      const foundLocal = myTickets.find((x) => normalize(x.rma) === query);
-      if (!foundLocal) setErrorMsg("No ticket found for this RMA number.");
-      else {
-        setTicket(foundLocal);
-        setInfoMsg("Ticket loaded successfully.");
-      }
+      setErrorMsg("No ticket found for this RMA number.");
     } catch {
       setErrorMsg("Could not connect to server. Is json-server running on :4000?");
     } finally {
@@ -534,7 +661,6 @@ export default function CustomerViewRequestApp() {
     setTab("track");
   };
 
-  // View all στο dropdown -> ΠΑΕΙ View My Requests (χωρίς extra μπάρα / σελίδα)
   const handleViewAllNotifications = () => {
     setNotifOpen(false);
     setTab("list");
@@ -573,7 +699,6 @@ export default function CustomerViewRequestApp() {
             View My Requests
           </button>
 
-          {/* 4o κουμπί: icon-only */}
           <button
             className={`${style.iconBtn} ${tab === "profile" ? style.iconBtnActive : ""}`}
             onClick={openProfile}
@@ -586,7 +711,6 @@ export default function CustomerViewRequestApp() {
             </span>
           </button>
 
-          {/* Notifications dropdown (ΜΟΝΟ dropdown) */}
           <div className={style.notifWrap} ref={notifWrapRef}>
             <button
               className={`${style.notifBtn} ${notifOpen ? style.tabBtnActive : ""}`}
@@ -657,7 +781,6 @@ export default function CustomerViewRequestApp() {
         </div>
       </header>
 
-      {/* PROFILE */}
       {tab === "profile" && (
         <div className={style.profileWrap}>
           <div className={style.profileHeaderRow}>
@@ -718,7 +841,9 @@ export default function CustomerViewRequestApp() {
                 <input
                   className={style.profileInput}
                   value={profileDraft.name}
-                  onChange={(e) => setProfileDraft((p) => ({ ...p, name: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileDraft((p) => ({ ...p, name: e.target.value }))
+                  }
                   placeholder="Name"
                 />
               )}
@@ -732,7 +857,9 @@ export default function CustomerViewRequestApp() {
                 <input
                   className={style.profileInput}
                   value={profileDraft.email}
-                  onChange={(e) => setProfileDraft((p) => ({ ...p, email: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileDraft((p) => ({ ...p, email: e.target.value }))
+                  }
                   placeholder="Email"
                 />
               )}
@@ -746,7 +873,9 @@ export default function CustomerViewRequestApp() {
                 <input
                   className={style.profileInput}
                   value={profileDraft.phone}
-                  onChange={(e) => setProfileDraft((p) => ({ ...p, phone: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileDraft((p) => ({ ...p, phone: e.target.value }))
+                  }
                   placeholder="Phone"
                 />
               )}
@@ -760,7 +889,9 @@ export default function CustomerViewRequestApp() {
                 <input
                   className={style.profileInput}
                   value={profileDraft.address}
-                  onChange={(e) => setProfileDraft((p) => ({ ...p, address: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileDraft((p) => ({ ...p, address: e.target.value }))
+                  }
                   placeholder="Address"
                 />
               )}
@@ -784,7 +915,6 @@ export default function CustomerViewRequestApp() {
         </div>
       )}
 
-      {/* NEW */}
       {tab === "new" && (
         <div className={style.newWrap}>
           <h2 className={style.sectionTitle}>New Request</h2>
@@ -792,7 +922,6 @@ export default function CustomerViewRequestApp() {
         </div>
       )}
 
-      {/* TRACK */}
       {tab === "track" && (
         <>
           <div className={style.searchCard}>
@@ -830,7 +959,6 @@ export default function CustomerViewRequestApp() {
         </>
       )}
 
-      {/* LIST */}
       {tab === "list" && (
         <div className={style.listWrap}>
           <div className={style.listHeaderRow}>
@@ -871,23 +999,27 @@ export default function CustomerViewRequestApp() {
                   onClick={() => handlePickTicket(t)}
                 >
                   <div className={style.cardTop}>
-                    {/* category = product name -> ΓΚΡΙ (όπως ζήτησες) */}
                     <div className={style.cardTitle}>{t.product?.name || "Product"}</div>
 
                     <div className={style.badgeGroup}>
-                      <ThemeBadge theme={theme} variant="solid" title="Customer request status (what stage your request is in)">
+                      <ThemeBadge
+                        theme={theme}
+                        variant="solid"
+                        title="Customer request status (what stage your request is in)"
+                      >
                         {prettyStatus(t.status)}
                       </ThemeBadge>
 
-                      {t.technical_status && normalize(t.status) !== normalize(t.technical_status) && (
-                        <ThemeBadge
-                          theme={getTechTheme(t.technical_status)}
-                          variant="soft"
-                          title="Technical status (internal review / technician update)"
-                        >
-                          {prettyStatus(t.technical_status)}
-                        </ThemeBadge>
-                      )}
+                      {t.technical_status &&
+                        normalize(t.status) !== normalize(t.technical_status) && (
+                          <ThemeBadge
+                            theme={getTechTheme(t.technical_status)}
+                            variant="soft"
+                            title="Technical status (internal review / technician update)"
+                          >
+                            {prettyStatus(t.technical_status)}
+                          </ThemeBadge>
+                        )}
                     </div>
                   </div>
 
@@ -896,7 +1028,8 @@ export default function CustomerViewRequestApp() {
                       <span className={style.metaLabel}>RMA:</span> {t.rma}
                     </div>
                     <div>
-                      <span className={style.metaLabel}>Customer:</span> {t.customer?.name || "-"}
+                      <span className={style.metaLabel}>Customer:</span>{" "}
+                      {t.customer?.name || "-"}
                     </div>
                   </div>
 

@@ -26,7 +26,8 @@
       "role": "customer",
       "name": "Customer User",
       "email": "customer@test.com",
-      "password": "customer123"
+      "password": "customer123",
+      "ticketId": "1"
     },
     {
       "id": "5",
