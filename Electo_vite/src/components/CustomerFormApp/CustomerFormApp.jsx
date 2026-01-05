@@ -225,7 +225,7 @@ export default function CreateForm() {
 
   const [emailError, setEmailError] = useState("");
 
-  /*  field errors για όλα τα required fields (εκτός email που έχει ξεχωριστό emailError) */
+  /*  field errors για όλα τα required fields */
   const [fieldErrors, setFieldErrors] = useState({
     name: "",
     surname: "",
