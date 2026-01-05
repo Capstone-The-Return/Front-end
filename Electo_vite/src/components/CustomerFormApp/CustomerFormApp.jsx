@@ -11,7 +11,7 @@ import { createTicket } from '../../services/employeeTickets';
 const CATEGORIES = ["Laptop", "Smartphone", "TV", "Home Appliance", "Accessory", "Other"];
 const STORES = ["Thessaloniki", "Athens", "Larisa", "Patra", "Heraklion", "Online Store"];
 
-/* labels (για να βγαίνει name is required */
+/* labels για να βγαίνει name is required */
 const FIELD_LABELS = {
   name: "Name",
   surname: "Surname",
@@ -67,7 +67,7 @@ function Warranty(purchaseDateStr) {
 
   let purchaseDate = new Date(purchaseDateStr);
   let today = new Date();
-
+  // μελλοντική ημερομηνία στην επισκευή
   if (purchaseDate > today) {
     return { ok: false, reason: "future", message: "The purchase date cannot be in the future." };
   }
@@ -95,8 +95,9 @@ function checkReturn(purchaseDateStr) {
 
   purchaseDate.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
-
+  
   if (purchaseDate > today) {
+    //μελλοντική ημερομηνία στην επιστροφή
     return { ok: false, message: "The purchase date cannot be in the future." };
   }
 
@@ -189,13 +190,13 @@ export function SnowEffect() {
     ];
 
     const big = [
-    makeImg(flakeD, 28),   // <- πιο μεγάλη
-    makeImg(winter, 32),   // <- πιο μεγάλη
+    makeImg(flakeD, 28),   // <- πιο μεγάλη σε σχέση με τις άλλες
+    makeImg(winter, 32),   // <- πιο μεγάλη -//- 
   ];
 
 
     
-  return [...small, ...big]
+  return [...small, ...big] //τις επστρέφω εδώ όλες
     
   }, []);
 
@@ -224,7 +225,7 @@ export default function CreateForm() {
 
   const [emailError, setEmailError] = useState("");
 
-  /**  field errors για όλα τα required fields (εκτός email που έχει ξεχωριστό emailError) */
+  /*  field errors για όλα τα required fields (εκτός email που έχει ξεχωριστό emailError) */
   const [fieldErrors, setFieldErrors] = useState({
     name: "",
     surname: "",
@@ -296,7 +297,7 @@ export default function CreateForm() {
 
   }
 
-  /**  onBlur: όταν φευφω από το field αν είναι κενό  δείχνει required */
+  /*  onBlur: όταν φευφω από το field αν είναι κενό  δείχνει required */
   function onBlur(e) {
     let fieldName = e.target.name;
 
@@ -333,7 +334,7 @@ export default function CreateForm() {
     setFile(selectedFile);
   }
 
-  /**  validate all required fields before submit */
+  /* επικυρώνω όλα τα απαιτούμενα πεδία πριν την υποβολή */
   function validateAllRequired() {
     let newErrors = { ...fieldErrors };
     let ok = true;
@@ -462,9 +463,10 @@ export default function CreateForm() {
         setMessage({ type: "error", text: error.message || "Failed to submit RMA request." });
       }
       finally{
-        setSubmitting(false);
-        setUploadFailed(false);
-      }
+    setSubmitting(false);
+    setUploadFailed(false);
+    setMessage({ type: "success", text: "Your RMA request has been submitted successfully." });
+  }
     };
 
   function reset() {
