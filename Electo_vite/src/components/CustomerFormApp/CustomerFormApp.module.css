@@ -126,7 +126,7 @@ body {
   margin: 0;
 }
 
-/* Full width για το div που περιεχει το textarea */
+/* Full width για το div που περιεχει το textarea */ 
 .full {
   grid-column: 1 / -1;
 }
@@ -142,7 +142,6 @@ body {
   font-size: 14px;
 }
 
-/* Actions Buttons */
 .actions {
   margin-top: 16px;
   display: flex;
@@ -190,7 +189,6 @@ body {
   margin-top: 6px;
 }
 
-/* Προσθήκη για το χιόνι */
 .snowContainer {
   position: fixed;
   top: 0;
@@ -203,7 +201,4 @@ body {
 .card {
   position: relative;
   z-index: 10;
-}
-.confirmationPage {
-  min-height: 60vh; /* δοκίμασε 65vh αν θες */
 }
