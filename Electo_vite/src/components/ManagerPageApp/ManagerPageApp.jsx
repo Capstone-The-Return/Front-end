@@ -26,7 +26,7 @@ import StatCard from "./StatCard.jsx";
 import ChartCard from "./ChartCard.jsx";
 import RecentRmaTable from "./RecentRmaTable.jsx";
 
-// ✅ uses your existing service (json-server on :4000)
+// uses  existing service (json-server on :4000)
 import { getAllTickets } from "../../services/employeeTickets";
 
 const PIE_COLORS = ["#22c55e", "#f97316", "#facc15", "#3b82f6", "#ef4444"];
@@ -48,7 +48,7 @@ function normalizeStatus(s) {
 }
 
 function statusLabelForPie(name) {
-  // Make pie labels nicer (your DB uses "in-repair", etc.)
+  // Make pie labels nicer 
   const n = (name || "").toString();
   if (n.toLowerCase() === "in-repair") return "In Repair";
   if (n.toLowerCase() === "pending") return "Pending Review";
@@ -147,7 +147,7 @@ export default function ManagerPageApp() {
       label: statusLabelForPie(name),
     }));
 
-    // Category distribution (db doesn't have category, so we use product.name)
+    // Category distribution use product.name
     const categoryCounts = tickets.reduce((acc, t) => {
       const key = t.product?.category || "Unknown";
       acc[key] = (acc[key] || 0) + 1;
@@ -170,7 +170,7 @@ export default function ManagerPageApp() {
         status: normalizeStatus(t.status),
       }));
 
-    // KPI cards data (trend can be real later; for now keep simple)
+    // KPI cards data (trend can be real later)
     const statCards = [
       { label: "Total RMAs", value: totalRMAs, trend: "Live", icon: <BsBoxSeam /> },
       { label: "Pending Review", value: pendingReview, trend: "Live", icon: <MdOutlinePendingActions /> },
@@ -183,7 +183,7 @@ export default function ManagerPageApp() {
       },
     ];
 
-    // Optional: performance metrics (still mock-ish, but you can compute later)
+    // Optional: performance metrics 
     const performance = [
       { title: "Resolution Rate", value: totalRMAs ? `${((completed / totalRMAs) * 100).toFixed(1)}%` : "N/A", delta: "Based on ticket statuses", accent: "green" },
       { title: "Customer Satisfaction", value: "N/A", delta: "Add ratings later", accent: "blue" },
