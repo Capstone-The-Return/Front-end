@@ -1,12 +1,17 @@
 .layout {
   display: flex;
+  /* Υπολογίζει το ύψος ώστε η σελίδα να πιάνει όλη την οθόνη 
+     αφαιρώντας το ύψος του Header και του Footer (περίπου 120px) */
   min-height: calc(100vh - 120px);
 }
 
 .content {
+  /* Λέει στο περιεχόμενο να καταλάβει όλο τον διαθέσιμο χώρο */
   flex: 1;
-  min-width: 0; /* IMPORTANT: prevents content going under the sidebar */
-  padding: clamp(16px, 2vw, 28px);
-  background: #f8fafc;
-  overflow-x: hidden;
+  /* Εμποδίζει το περιεχόμενο από το να "ξεχειλίσει" ή να κρυφτεί 
+     αν υπήρχε sidebar*/
+  min-width: 0; 
+  padding: clamp(16px, 2vw, 28px); /* Δυναμικό padding: 16px σε μικρές οθόνες, έως 28px σε μεγάλες */
+  background: #f8fafc; /* Ένα πολύ ελαφρύ γκρι/μπλε φόντο για να ξεχωρίζουν οι λευκές κάρτες */
+  overflow-x: hidden; /* Εμποδίζει την οριζόντια μπάρα σκρολαρίσματος αν κάτι βγει εκτός ορίων */
 }
