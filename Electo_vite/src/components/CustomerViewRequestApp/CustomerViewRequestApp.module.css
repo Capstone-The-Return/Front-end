@@ -1,13 +1,15 @@
+/* ====== ΒΑΣΙΚΟ LAYOUT ΣΕΛΙΔΑΣ ====== */
 .page {
   width: 100%;
   max-width: 1100px;
-  margin: 0 auto;
+  margin: 0 auto; /*κεντράρισμα σελίδας */
   padding: 28px 16px 50px;
   color: #1f2937;
   font-weight: 400;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased; /* Κάνει τη γραμματοσειρά να φαίνεται πιο "καθαρή" */
 }
 
+/* Header που περιέχει τον τίτλο και τα κουμπιά πλοήγησης */
 .portalHeader {
   display: flex;
   align-items: flex-start;
@@ -30,11 +32,12 @@
   font-weight: 400;
 }
 
+/* Container για τα κουμπιά των Tabs */
 .portalActions {
   display: flex;
   align-items: center;
   gap: 18px;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* Αν δεν χωράνε, πάνε στην από κάτω σειρά */
 }
 
 /* ====== TABS (employee-like) ====== */
@@ -52,10 +55,11 @@
 }
 
 .tabBtn:hover {
-  color: #1f2937;
+  color: #1f2937; /* Σκουραίνει το κείμενο στο hover χωρίς να αλλάζει φόντο */
   background: transparent; /* δεν αλλάζει σε άσπρο */
 }
 
+/* Στυλ για το ενεργό Tab (το κουμπί που δείχνει πού βρισκόμαστε) */
 .tabBtnActive {
   background: #1e4a57;
   color: #ffffff;
@@ -67,6 +71,7 @@
   color: #ffffff;
 }
 
+/* Κουμπιά με εικονίδια (π.χ. Προφίλ) */
 .iconBtn {
   appearance: none;
   border: none;
@@ -104,9 +109,9 @@
   composes: tabBtn;
 }
 
-/* ====== DROPDOWN (μην πειραχτεί) ====== */
+/* ====== DROPDOWN Ειδοποιήσεων ====== */
 .notifWrap {
-  position: relative;
+  position: relative; /* Απαραίτητο για να τοποθετηθεί το dropdown ακριβώς από κάτω */
 }
 
 .dropdown {
@@ -120,7 +125,7 @@
   border-radius: 12px;
   box-shadow: 0 18px 35px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  z-index: 1000;
+  z-index: 1000; /* Για να εμφανίζεται πάνω από όλα τα άλλα στοιχεία */
 }
 
 .dropdownEmpty {
@@ -128,6 +133,7 @@
   color: #6b7280;
 }
 
+/* Στοιχεία μέσα στη λίστα ειδοποιήσεων */
 .dropdownItem {
   width: 100%;
   border: none;
@@ -145,12 +151,14 @@
   background: #f9fafb;
 }
 
+/* Το "κύκλος" χρώματος μέσα στο dropdown (π.χ. πράσινο για Completed) */
 .dropdownDot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
 }
 
+/* Χρωματιστές τελείες ανάλογα με τον τύπο ειδοποίησης */
 .dropdownDotSuccess { background: #2e7d32; }
 .dropdownDotDanger { background: #c62828; }
 .dropdownDotInfo { background: #1565c0; }
@@ -313,6 +321,7 @@
   --accent: #1e4a57;
 }
 
+/* Δυναμική αλλαγή της μεταβλητής --accent βάσει του data-theme attribute */
 .resultCard[data-theme="warning"] { --accent: #f59e0b; }
 .resultCard[data-theme="info"] { --accent: #1565c0; }
 .resultCard[data-theme="success"] { --accent: #2e7d32; }
@@ -347,6 +356,7 @@
   flex-wrap: wrap;
 }
 
+/* ====== BADGES (Ετικέτες Status) ====== */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -359,6 +369,7 @@
   white-space: nowrap;
 }
 
+/* Διαφορετικά χρώματα για κάθε κατάσταση (π.χ. Success = Πράσινο) */
 .badgeSuccess { background: #e7f5ee; color: #14532d; border-color: #cce8db; }
 .badgeDanger { background: #fee2e2; color: #7f1d1d; border-color: #fecaca; }
 .badgeInfo { background: #e7f0ff; color: #0b3b8a; border-color: #c7dafc; }
@@ -389,6 +400,7 @@
   width: 100%;
 }
 
+/* Timeline: Η μπάρα προόδου */
 .circle {
   width: 28px;
   height: 28px;
@@ -402,6 +414,7 @@
   font-weight: 400;
 }
 
+/* Όταν ένα βήμα είναι ενεργό, παίρνει το χρώμα της μεταβλητής --accent */
 .circleActive {
   border-color: var(--accent);
   background: var(--accent);
@@ -515,7 +528,7 @@
   }
 }
 
-/* ticket colors by status + left bar color (όπως employee) */
+/* ticket colors by status + left bar color (όπως employee), LIST (Κάρτες στη λίστα "My Requests")  */
 .requestCard {
   position: relative;
   border: 1px solid #e5e7eb;
@@ -538,6 +551,7 @@
 .requestCard[data-theme="danger"] { --accent: #c62828; --ticketText: #7f1d1d; }
 .requestCard[data-theme="neutral"] { --accent: #9ca3af; --ticketText: #374151; }
 
+/* Η κάθετη χρωματιστή γραμμή στα αριστερά κάθε κάρτας στη λίστα */
 .requestCard::before {
   content: "";
   position: absolute;
@@ -545,7 +559,7 @@
   top: 0;
   bottom: 0;
   width: 6px;
-  background: var(--accent); /* ✅ η μπάρα μέσα σε κάθε ticket */
+  background: var(--accent); /* Παίρνει το χρώμα του status */
   border-top-left-radius: 16px;
   border-bottom-left-radius: 16px;
 }
@@ -565,7 +579,7 @@
 
 .cardTitle {
   font-size: 16px;
-  color: #6b7280; /* category = ΓΚΡΙ */
+  color: #6b7280; /* Το όνομα του προϊόντος είναι γκρι */
   font-weight: 400; /* NO bold */
 }
 
@@ -600,9 +614,10 @@
   margin-bottom: 14px;
 }
 
+/* ====== PROFILE (Προφίλ Χρήστη) ====== */
 .profileGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 στήλες */
   gap: 14px;
 }
 
@@ -621,10 +636,12 @@
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
 }
 
+/* Κάρτα που πιάνει όλο το πλάτος (για το Last Update) */
 .profileCardWide {
   grid-column: span 3;
 }
 
+/* ====== RESPONSIVENESS (Κινητά / Μικρές οθόνες) ====== */
 @media (max-width: 900px) {
   .profileCardWide {
     grid-column: span 1;

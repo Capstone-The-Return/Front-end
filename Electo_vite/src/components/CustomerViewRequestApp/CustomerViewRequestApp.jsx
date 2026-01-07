@@ -4,8 +4,10 @@ import CustomerFormApp from "../../components/CustomerFormApp/CustomerFormApp.js
 
 const API_BASE = "http://localhost:4000";
 
+// Μετατρέπει οποιοδήποτε κείμενο σε κεφαλαία και αφαιρεί κενά για να γίνονται σωστές συγκρίσεις (π.χ. "pending " -> "PENDING")
 const normalize = (v) => (v || "").trim().toUpperCase();
 
+// Μετατρέπει τα raw status της βάσης σε  labels για τον χρήστη (π.χ. "IN-REPAIR" -> "In Repair")
 const prettyStatus = (raw) => {
   const s = (raw || "").trim();
   if (!s) return "-";
@@ -14,7 +16,6 @@ const prettyStatus = (raw) => {
   const map = {
     PENDING: "Pending",
     "IN-REPAIR": "In Repair",
-    "IN REPAIR": "In Repair",
     COMPLETED: "Completed",
     CLOSED: "Closed",
 
@@ -25,6 +26,7 @@ const prettyStatus = (raw) => {
   return map[key] || s;
 };
 
+// Μετατρέπει ISO ημερομηνίες σε αναγνώσιμη μορφή βάσει τοπικής ώρας
 const formatDate = (iso) => {
   if (!iso) return "-";
   try {
@@ -34,8 +36,10 @@ const formatDate = (iso) => {
   }
 };
 
+// Τα στάνταρ βήματα στην μπάρα προόδου
 const STEPS = ["Submitted", "Approved", "In Repair", "Completed"];
 
+// Βρίσκει την τελευταία ημερομηνία ενημέρωσης για ταξινόμηση
 function getTicketUpdatedAtMs(t) {
   const raw = t?.last_updated || t?.created_at || t?.createdAt || t?.date;
   if (!raw) return 0;
@@ -43,6 +47,7 @@ function getTicketUpdatedAtMs(t) {
   return Number.isFinite(ms) ? ms : 0;
 }
 
+// Υπολογίζει σε ποιο βήμα βρίσκεται το ticket για να γεμίσει η μπάρα προόδου
 function getStepIndexFromTicket(t) {
   if (!t) return 0;
 
@@ -59,6 +64,7 @@ function getStepIndexFromTicket(t) {
   return 0;
 }
 
+// Επιστρέφει το "θέμα" (χρώμα) του ticket βάσει του status
 function getThemeFromTicket(t) {
   if (!t) return "neutral";
 
@@ -73,6 +79,7 @@ function getThemeFromTicket(t) {
   return "neutral";
 }
 
+// Για το "Technical Status" badge, υπολογίζει το χρώμα του ξεχωριστά
 function getTechTheme(techRaw) {
   const tech = normalize(techRaw);
   if (!techRaw) return "neutral";
@@ -83,6 +90,7 @@ function getTechTheme(techRaw) {
   return "neutral";
 }
 
+// Ένα δυναμικό Badge που αλλάζει κλάση CSS βάσει του theme (solid ή soft εμφάνιση)
 function ThemeBadge({ theme = "neutral", children, variant = "solid", title }) {
   const cls =
     theme === "success"
@@ -112,6 +120,7 @@ function ThemeBadge({ theme = "neutral", children, variant = "solid", title }) {
   );
 }
 
+// Εμφανίζει το status του πελάτη και (αν υπάρχει) το εσωτερικό τεχνικό status
 function StatusBadge({ ticket }) {
   const statusRaw = ticket?.status;
   const techRaw = ticket?.technical_status;
@@ -147,6 +156,7 @@ function StatusBadge({ ticket }) {
   );
 }
 
+// Η οπτική μπάρα προόδου με κύκλους και γραμμές σύνδεσης
 function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
   const ACCENT = {
     warning: "#f59e0b", // Pending
@@ -196,7 +206,7 @@ function ProgressBar({ currentIndex = 0, theme = "neutral" }) {
   );
 }
 
-
+// Η αναλυτική κάρτα που δείχνει όλες τις πληροφορίες ενός Ticket (RMA, Προϊόν, Ημερομηνίες)
 function TicketDetails({ ticket }) {
   if (!ticket) return null;
 
@@ -273,6 +283,7 @@ function TicketDetails({ ticket }) {
   );
 }
 
+// Προσπαθεί να βρει ποιος είναι ο χρήστης κοιτάζοντας διάφορα κλειδιά στο localStorage
 function guessUserIdentity() {
   const pick = (k) => {
     const v = localStorage.getItem(k);
@@ -287,6 +298,7 @@ function guessUserIdentity() {
   return { email, name };
 }
 
+// Επιλέγω το ticket που θα εμφανίζεται στο προφιλ, που έχει τα περισσότερα συμπληρωμένα πεδία)
 function pickProfileTicket(list) {
   if (!list?.length) return null;
 
@@ -315,22 +327,22 @@ function pickProfileTicket(list) {
 }
 
 export default function CustomerViewRequestApp() {
-  // Default tab: Profile (όπως ζήτησες)
-  const [tab, setTab] = useState("profile"); // "profile" | "new" | "track" | "list"
+  // Default tab: Profile 
+  const [tab, setTab] = useState("profile"); // "profile" | "new" | "track" | "list" // Ποιο tab είναι ενεργό
 
-  const [tickets, setTickets] = useState([]);
+  const [tickets, setTickets] = useState([]); // Όλα τα tickets από το API
   const ticketsMemo = useMemo(() => tickets || [], [tickets]);
 
   // Track RMA
-  const [rma, setRma] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [infoMsg, setInfoMsg] = useState("");
-  const [ticket, setTicket] = useState(null);
+  const [rma, setRma] = useState(""); // Το κείμενο αναζήτησης RMA
+  const [loading, setLoading] = useState(false); // Κατάσταση φόρτωσης
+  const [errorMsg, setErrorMsg] = useState(""); // Μήνυμα σφάλματος
+  const [infoMsg, setInfoMsg] = useState(""); // Μήνυμα επιτυχίας
+  const [ticket, setTicket] = useState(null); // Το ticket που βρέθηκε από την αναζήτηση
 
   // Notifications dropdown (ΜΕΝΕΙ όπως ήταν: dropdown)
-  const [notifOpen, setNotifOpen] = useState(false);
-  const notifWrapRef = useRef(null);
+  const [notifOpen, setNotifOpen] = useState(false); // Αν είναι ανοιχτό το dropdown ειδοποιήσεων
+  const notifWrapRef = useRef(null); // Reference για το κλείσιμο του dropdown με κλικ έξω
 
   // Profile UI-only edit (δεν πειράζει json)
   const [profileOverride, setProfileOverride] = useState(null);
@@ -347,6 +359,7 @@ export default function CustomerViewRequestApp() {
     setInfoMsg("");
   };
 
+  // Φορτώνει τα δεδομένα από το json-server
   async function loadTickets() {
     const res = await fetch(`${API_BASE}/tickets`);
     if (!res.ok) throw new Error("Failed to load tickets");
@@ -356,6 +369,7 @@ export default function CustomerViewRequestApp() {
     return arr;
   }
 
+  // Κλείνει το notification dropdown αν κάνουμε κλικ οπουδήποτε αλλού στη σελίδα
   useEffect(() => {
     (async () => {
       try {
@@ -376,7 +390,7 @@ export default function CustomerViewRequestApp() {
     return () => document.removeEventListener("mousedown", onDocDown);
   }, []);
 
-  // My tickets (demo filter)
+  // Φιλτράρει τα tickets ώστε ο χρήστης να βλέπει μόνο τα δικά του (βάσει email/name από localStorage)
   const myTickets = useMemo(() => {
     const { email, name } = guessUserIdentity();
     if (!ticketsMemo.length) return [];
@@ -428,7 +442,7 @@ export default function CustomerViewRequestApp() {
     }));
   }, [myTickets]);
 
-  // Profile: παίρνει ticket με τα ΠΙΟ πολλά στοιχεία (όπως ζήτησες)
+  // Υπολογίζει τα στοιχεία του προφίλ από τα υπάρχοντα tickets του χρήστη
   const derivedProfile = useMemo(() => {
     const t = pickProfileTicket(myTickets);
     if (!t) {
@@ -474,6 +488,7 @@ export default function CustomerViewRequestApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
+  // Διαχείριση Αναζήτησης RMA (Track RMA)
   const handleSearch = async (e) => {
     e.preventDefault();
     const query = normalize(rma);
@@ -525,6 +540,7 @@ export default function CustomerViewRequestApp() {
   const openTrack = () => setTab("track");
   const openList = () => setTab("list");
 
+  // Όταν ο χρήστης επιλέγει ένα ticket από τις ειδοποιήσεις ή τη λίστα
   const handlePickTicket = (t) => {
     setNotifOpen(false);
     setTicket(t);
